@@ -2,7 +2,7 @@
 
 ### status
 Query remote node for status
-```
+``` json
 $ votumchaincli status
 {
   "node_info": {
@@ -42,7 +42,7 @@ $ votumchaincli status
 
 ### config
 Create or query a Gaia CLI configuration file
-```
+```json
 votumchaincli config
 chain-id = "testchain"
 indent = true
@@ -55,7 +55,7 @@ Querying subcommands
 
 - tendermint-validator-set
 Get the full tendermint validator set at given height
-```
+```json
 $ votumchaincli query tendermint-validator-set
 {
  "block_height": "658",
@@ -73,7 +73,7 @@ $ votumchaincli query tendermint-validator-set
 - block
 Get verified data for a the block at given height
 
-```
+```json
 $ votumchaincli query block 120
 {
   "block_meta": {
@@ -172,7 +172,7 @@ $ votumchaincli query block 120
 
 - tx
 Matches this txhash over all committed blocks
-```
+```json
 $ votumchaincli query tx C3610DABFF0262C04D702A9422C35B43AE69AB78AD9F3926461478A7B7D1C30F
 {
  "height": "764",
@@ -233,7 +233,7 @@ $ votumchaincli query tx C3610DABFF0262C04D702A9422C35B43AE69AB78AD9F3926461478A
 
 - account
 Query account balance
-```
+```json
 $  votumchaincli query account cosmos1xzzcenw2wfu8nrpev00jyynl2rrpp3tsdlxfdm
 {
  "type": "auth/Account",
@@ -261,10 +261,10 @@ Transactions subcommands
 
 - send
 Create and sign a send tx
-```
+```bash
 $ votumchaincli tx send cosmos1xzzcenw2wfu8nrpev00jyynl2rrpp3tsdlxfdm 10mycoin --from alice
 ```
-```
+```json
 {
  "height": "764",
  "txhash": "C3610DABFF0262C04D702A9422C35B43AE69AB78AD9F3926461478A7B7D1C30F",
@@ -305,7 +305,7 @@ Add or view local private keys
 - add
 
 Add an encrypted private key (either newly generated or recovered), encrypt it, and save to disk
-```
+```json
 $ votumchaincli keys add test
 {
   "name": "test",
@@ -318,7 +318,7 @@ $ votumchaincli keys add test
 
 - list 
 List all keys
-```
+```json
 $ votumchaincli keys list
 [
   {
@@ -344,21 +344,21 @@ $ votumchaincli keys list
 
 - show 
 Show key info for the given name
-```
+```bash
 $ votumchaincli keys show jack -a
 cosmos1xzzcenw2wfu8nrpev00jyynl2rrpp3tsdlxfdm
 ```
 
 - update
 Change the password used to protect private key
-```
+```bash
 $ votumchaincli keys update test
 Password successfully updated!
 ```
 
 - delete
 Delete the given key
-```
+```bash
 $ votumchaincli keys delete test
 Key deleted forever (uh oh!)
 ```
