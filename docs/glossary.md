@@ -268,6 +268,7 @@ native tokenをvalidatorにbondしているuserが、参加者とみなされる
 
 
 
+cosmosとの違いとして、Native tokenのatomがないので、投票用トークンの発行およびそれによる投票プロセスを作る必要がある。
 
 
 
