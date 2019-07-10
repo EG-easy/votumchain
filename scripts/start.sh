@@ -1,18 +1,18 @@
 # Initialize configuration files and genesis file
-votumchaind init --chain-id testchain
+votumd init --chain-id testchain
 
 # Copy the `Address` output here and save it for later use
-votumchaincli keys add jack
+votumcli keys add jack
 
 # Copy the `Address` output here and save it for later use
-votumchaincli keys add alice
+votumcli keys add alice
 
 # Add both accounts, with coins to the genesis file
-votumchaind add-genesis-account $(votumchaincli keys show jack -a) 1000mycoin,1000jackcoin
-votumchaind add-genesis-account $(votumchaincli keys show alice -a) 1000mycoin,1000alicecoin
+votumd add-genesis-account $(votumcli keys show jack -a) votum1000
+votumd add-genesis-account $(votumcli keys show alice -a) votum1000
 
 # Configure your CLI to eliminate need for chain-id flag
-votumchaincli config chain-id testchain
-votumchaincli config output json
-votumchaincli config indent true
-votumchaincli config trust-node true
+votumcli config chain-id testchain
+votumcli config output json
+votumcli config indent true
+votumcli config trust-node true

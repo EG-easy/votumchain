@@ -1,30 +1,14 @@
-DEP := $(shell command -v dep 2> /dev/null)
+all: lint install
 
-get_tools:
-ifndef DEP
-	@echo "Installing dep"
-	go get -u -v github.com/golang/dep/cmd/dep
-else
-	@echo "Dep is already installed..."
-endif
+install: go.sum
+		go install ./cmd/votumd
+		go install ./cmd/votumcli
 
-get_vendor_deps:
-	@echo "--> Generating vendor directory via dep ensure"
-	@rm -rf .vendor-new
-	@dep ensure -v -vendor-only
+go.sum: go.mod
+		@echo "--> Ensure dependencies have not been modified"
+		GO111MODULE=on go mod verify
 
-update_vendor_deps:
-	@echo "--> Running dep ensure"
-	@rm -rf .vendor-new
-	@dep ensure -v -update
-
-install:
-	go install ./cmd/votumchaincli
-	go install ./cmd/votumchaind
-
-#dockerのbuild
-build:
-	docker build . -t sample-cosmos-app
-#docker環境でstart
-start:
-	docker run -it sample-cosmos-app
+lint:
+	golangci-lint run
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
+	go mod verify
