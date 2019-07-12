@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	app "github.com/EG-easy/votumchain"
+	"github.com/EG-easy/votumchain/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
@@ -85,7 +85,7 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 		client.LineBreak,
 		rpc.ValidatorCommand(cdc),
 		rpc.BlockCommand(),
-		authcmd.QueryTxsByTagsCmd(cdc),
+		authcmd.QueryTxsByEventsCmd(cdc),
 		authcmd.QueryTxCmd(cdc),
 		client.LineBreak,
 	)

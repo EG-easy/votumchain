@@ -8,8 +8,8 @@ votumcli keys add jack
 votumcli keys add alice
 
 # Add both accounts, with coins to the genesis file
-votumd add-genesis-account $(votumcli keys show jack -a) votum1000
-votumd add-genesis-account $(votumcli keys show alice -a) votum1000
+votumd add-genesis-account $(votumcli keys show jack -a) 1000votum
+votumd add-genesis-account $(votumcli keys show alice -a) 1000votum
 
 # Configure your CLI to eliminate need for chain-id flag
 votumcli config chain-id testchain
