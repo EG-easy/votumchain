@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/EG-easy/votumchain/types"
+	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	clientrest "github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/cosmos/cosmos-sdk/codec"

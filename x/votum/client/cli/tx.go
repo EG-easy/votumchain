@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/EG-easy/votumchain/types"
+	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/utils"
 	"github.com/cosmos/cosmos-sdk/codec"
