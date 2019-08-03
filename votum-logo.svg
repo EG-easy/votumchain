@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="731px" height="255px" viewBox="0 0 731 255" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 56.3 (81716) - https://sketch.com -->
+    <title>Group 4</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#72738E" offset="0%"></stop>
+            <stop stop-color="#000000" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-4" transform="translate(0.000000, -26.000000)">
+            <g id="Group-3" transform="translate(273.888000, 0.000000)" fill="#000000" font-family="GillSans-Light, Gill Sans" font-size="155.52" font-weight="300">
+                <text id="Votum" letter-spacing="12.4416">
+                    <tspan x="7.776" y="140">Votum</tspan>
+                </text>
+                <text id="Chain" letter-spacing="25.0560013">
+                    <tspan x="0" y="278.24">C</tspan>
+                    <tspan x="130.305376" y="278.24" letter-spacing="25.9200012">ha</tspan>
+                    <tspan x="324.756004" y="278.24" letter-spacing="28.5119995">i</tspan>
+                    <tspan x="382.503941" y="278.24" letter-spacing="29.376001">n</tspan>
+                </text>
+            </g>
+            <rect id="Rectangle" fill="url(#linearGradient-1)" x="0" y="26.7672347" width="246.668103" height="246.668103"></rect>
+            <g id="Group" transform="translate(56.923408, 17.280000)" font-family="GillSans, Gill Sans" font-size="216.963571" font-weight="normal" letter-spacing="34.9552399">
+                <text id="V" fill="#84F8FF">
+                    <tspan x="0" y="218.923193">V</tspan>
+                </text>
+                <text id="V" fill="#FF6767">
+                    <tspan x="0" y="199">V</tspan>
+                </text>
+                <text id="V" fill="#FFFFFF">
+                    <tspan x="0" y="208.961596">V</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
