@@ -2,13 +2,30 @@ package cli
 
 import (
 	"github.com/EG-easy/votumchain/x/votum/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/utils"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtxb "github.com/cosmos/cosmos-sdk/x/auth/client/txbuilder"
 	"github.com/spf13/cobra"
 )
+
+func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+	nameserviceTxCmd := &cobra.Command{
+		Use:                        types.ModuleName,
+		Short:                      "Votumchain transaction subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	nameserviceTxCmd.AddCommand(client.PostCommands(
+		GetCmdBuyName(cdc),
+		GetCmdSetName(cdc),
+	)...)
+
+	return nameserviceTxCmd
+}
 
 func GetCmdTransfer(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{

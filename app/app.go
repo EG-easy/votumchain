@@ -58,15 +58,6 @@ var (
 	)
 )
 
-// custom tx codec
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	return cdc
-}
-
 // Extended ABCI application
 type votumApp struct {
 	*bam.BaseApp
@@ -145,8 +136,8 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 
 	// account permissions
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:     []string{supply.Basic},
-		distr.ModuleName:          []string{supply.Basic},
+		auth.FeeCollectorName:     nil,
+		distr.ModuleName:          nil,
 		mint.ModuleName:           []string{supply.Minter},
 		staking.BondedPoolName:    []string{supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: []string{supply.Burner, supply.Staking},
@@ -202,9 +193,9 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
-	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, supply.ModuleName, distr.ModuleName,
+	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, distr.ModuleName,
 		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, crisis.ModuleName, genutil.ModuleName)
+		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
@@ -227,6 +218,15 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		}
 	}
 	return app
+}
+
+// custom tx codec
+func MakeCodec() *codec.Codec {
+	var cdc = codec.New()
+	ModuleBasics.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	return cdc
 }
 
 // application updates every begin block

@@ -18,3 +18,7 @@ votumcli config indent true
 votumcli config trust-node true
 
 votumd gentx --name jack
+
+votumd collect-gentxs
+
+votumd validate-genesis

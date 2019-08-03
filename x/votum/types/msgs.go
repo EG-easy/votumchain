@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const RouterKey = ModuleName // this was defined in your key.go file
+
 /*
 Msgsは、stateの変更のtransactionを実行する時に渡すパラメータで、Txsにラップされてnetworkにbroadcastされる
 cosmos-sdkを使うことで、Msgsをラップしたり、Txsからのアンラップしたりしてくれるので、実質的にMsgsの定義だけすれば良い

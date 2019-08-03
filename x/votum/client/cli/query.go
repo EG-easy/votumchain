@@ -1,14 +1,31 @@
 package cli
 
 import (
+	"github.com/EG-easy/votumchain/x/votum/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	"fmt"
 	"strings"
 )
+
+func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+	nameserviceQueryCmd := &cobra.Command{
+		Use:                        types.ModuleName,
+		Short:                      "Querying commands for the nameservice module",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+	nameserviceQueryCmd.AddCommand(client.GetCommands(
+		GetCmdResolveName(storeKey, cdc),
+		GetCmdWhois(storeKey, cdc),
+		GetCmdNames(storeKey, cdc),
+	)...)
+	return nameserviceQueryCmd
+}
 
 func GetCmdBalanceOf(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
