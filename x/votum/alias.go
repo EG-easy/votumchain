@@ -15,3 +15,7 @@ var (
 	ModuleCdc     = types.ModuleCdc
 	RegisterCodec = types.RegisterCodec
 )
+
+type (
+	MsgIssueToken = types.MsgIssueToken
+)

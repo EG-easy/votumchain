@@ -46,3 +46,9 @@ $ votumd validate-genesis
 ```
 
 
+## Voting
+
+### send Proposal 
+```
+$ votumcli tx gov submit-proposal --proposal="proposal/proposal.json" --from jack
+```

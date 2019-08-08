@@ -1,4 +1,4 @@
-package types
+package votum
 
 import (
 	"log"

@@ -1,4 +1,4 @@
-package types
+package votum
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ MsgsのメソッドであるValidateBasicでは、Msgsのimput時点でのチェ
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
-		case MsgTransferCoin:
-			return handleMsgTransferCoin(ctx, keeper, msg)
+		case MsgIssueToken:
+			return handleMsgIssueToken(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("Unrecognized transfercoin Msg type: %v", msg.Type())
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -25,10 +25,10 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-//TransferCoinのMsgを扱うためのHandler
-func handleMsgTransferCoin(ctx sdk.Context, keeper Keeper, msg MsgTransferCoin) sdk.Result {
+//IssueTokenのMsgを扱うためのHandler
+func handleMsgIssueToken(ctx sdk.Context, keeper Keeper, msg MsgIssueToken) sdk.Result {
 
-	_, err := keeper.coinKeeper.SendCoins(ctx, msg.FromAddr, msg.ToAddr, msg.Amt)
+	_, err := keeper.coinKeeper.SetCoins(ctx, msg.Owner, msg.Token)
 	if err != nil {
 		return sdk.ErrInsufficientCoins("Sender does not have enough coins").Result()
 	}
