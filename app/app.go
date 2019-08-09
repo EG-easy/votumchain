@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/EG-easy/votumchain/x/votum"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -55,6 +56,8 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+
+		votum.AppModule{},
 	)
 )
 

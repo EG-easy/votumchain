@@ -25,14 +25,14 @@ type Msg interface {
 //MsgIssueToken IssueTokenに関するMsg interfaceの実装
 type MsgIssueToken struct {
 	Owner sdk.AccAddress
-	Token sdk.Coins
+	Coin  sdk.Coin
 }
 
 //NewMsgIssueToken 新しいMsgIssueTokenを生成
-func NewMsgIssueToken(owner sdk.AccAddress, token sdk.Coins) MsgIssueToken {
+func NewMsgIssueToken(owner sdk.AccAddress, coin sdk.Coin) MsgIssueToken {
 	return MsgIssueToken{
 		Owner: owner,
-		Token: token,
+		Coin:  coin,
 	}
 }
 
@@ -51,8 +51,8 @@ func (msg MsgIssueToken) ValidateBasic() sdk.Error {
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
-	if len(msg.Token) == 0 {
-		return sdk.ErrUnknownRequest("Amount cannot be empty")
+	if msg.Coin.Amount.IsNegative() {
+		return sdk.ErrUnknownRequest("Amount cannot be negative")
 	}
 	return nil
 }

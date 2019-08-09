@@ -18,3 +18,25 @@ func NewKeeper(coinKeeper bank.BaseKeeper, cdc *codec.Codec) Keeper {
 		cdc:        cdc,
 	}
 }
+
+// Gets the entire Whois metadata struct for a name
+// func (k Keeper) GetIssuers(ctx sdk.Context, addr sdk.AccAddress) types.Issuers {
+// 	coins := k.coinKeeper.GetCoins(ctx, addr)
+// 	store := ctx.KVStore(k.storeKey)
+// 	if !k.IsNamePresent(ctx, name) {
+// 		return NewWhois()
+// 	}
+// 	bz := store.Get([]byte(name))
+// 	var issuers Issuers
+// 	k.cdc.MustUnmarshalBinaryBare(bz, &issuers)
+// 	return issuers
+// }
+//
+// // Sets the entire Whois metadata struct for a name
+// func (k Keeper) SetIssuers(ctx sdk.Context, name string, whois Whois) {
+// 	if whois.Owner.Empty() {
+// 		return
+// 	}
+// 	store := ctx.KVStore(k.storeKey)
+// 	store.Set([]byte(name), k.cdc.MustMarshalBinaryBare(whois))
+// }

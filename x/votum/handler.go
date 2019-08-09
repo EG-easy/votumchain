@@ -28,10 +28,33 @@ func NewHandler(keeper Keeper) sdk.Handler {
 //IssueTokenのMsgを扱うためのHandler
 func handleMsgIssueToken(ctx sdk.Context, keeper Keeper, msg MsgIssueToken) sdk.Result {
 
-	_, err := keeper.coinKeeper.SetCoins(ctx, msg.Owner, msg.Token)
-	if err != nil {
-		return sdk.ErrInsufficientCoins("Sender does not have enough coins").Result()
-	}
+	newCoin := sdk.NewCoin(msg.Coin.Denom, msg.Coin.Amount)
+	newCoins := sdk.NewCoins(newCoin)
 
+	err := keeper.coinKeeper.SetCoins(ctx, msg.Owner, newCoins)
+	if err != nil {
+		return sdk.ErrInvalidCoins("Issuing New Coin is failed").Result()
+	}
 	return sdk.Result{}
 }
+
+// func handleMsgBuyName(ctx sdk.Context, keeper Keeper, msg MsgBuyName) sdk.Result {
+// 	if keeper.GetPrice(ctx, msg.Name).IsAllGT(msg.Bid) { // Checks if the the bid price is greater than the price paid by the current owner
+// 		return sdk.ErrInsufficientCoins("Bid not high enough").Result() // If not, throw an error
+// 	}
+// 	if keeper.HasOwner(ctx, msg.Name) {
+// 		err := keeper.coinKeeper.SendCoins(ctx, msg.Buyer, keeper.GetOwner(ctx, msg.Name), msg.Bid)
+// 		if err != nil {
+// 			return sdk.ErrInsufficientCoins("Buyer does not have enough coins").Result()
+// 		}
+// 	} else {
+// 		_, err := keeper.coinKeeper.SubtractCoins(ctx, msg.Buyer, msg.Bid) // If so, deduct the Bid amount from the sender
+// 		if err != nil {
+// 			return sdk.ErrInsufficientCoins("Buyer does not have enough coins").Result()
+// 		}
+// 	}
+// 	keeper.SetOwner(ctx, msg.Name, msg.Buyer)
+// 	keeper.SetPrice(ctx, msg.Name, msg.Bid)
+// 	return sdk.Result{}
+// }
+//
