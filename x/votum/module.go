@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -64,18 +64,34 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(StoreKey, cdc)
 }
 
+// type AppModule struct {
+// 	AppModuleBasic
+// 	keeper     Keeper
+// 	coinKeeper bank.Keeper
+// }
+
+// app module
 type AppModule struct {
 	AppModuleBasic
-	keeper     Keeper
-	coinKeeper bank.Keeper
+	keeper Keeper
+	ak     auth.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
+// func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
+// 	return AppModule{
+// 		AppModuleBasic: AppModuleBasic{},
+// 		keeper:         k,
+// 		coinKeeper:     bankKeeper,
+// 	}
+// }
+
+// NewAppModule creates a new AppModule object
+func NewAppModule(keeper Keeper, ak auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
-		coinKeeper:     bankKeeper,
+		keeper:         keeper,
+		ak:             ak,
 	}
 }
 

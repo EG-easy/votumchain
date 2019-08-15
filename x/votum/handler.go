@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
 /*
@@ -28,10 +29,11 @@ func NewHandler(keeper Keeper) sdk.Handler {
 //IssueTokenのMsgを扱うためのHandler
 func handleMsgIssueToken(ctx sdk.Context, keeper Keeper, msg MsgIssueToken) sdk.Result {
 
-	newCoin := sdk.NewCoin(msg.Coin.Denom, msg.Coin.Amount)
+	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
 	newCoins := sdk.NewCoins(newCoin)
 
-	err := keeper.coinKeeper.SetCoins(ctx, msg.Owner, newCoins)
+	acc := auth.NewBaseAccountWithAddress(msg.Owner)
+	err := acc.SetCoins(newCoins)
 	if err != nil {
 		return sdk.ErrInvalidCoins("Issuing New Coin is failed").Result()
 	}
