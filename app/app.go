@@ -119,7 +119,7 @@ type votumApp struct {
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
 
-	votumKeeper votum.Keeper
+	// votumKeeper votum.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -173,7 +173,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper,
 		slashingSubspace, slashing.DefaultCodespace)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
-	app.votumKeeper = votum.NewKeeper(app.cdc, app.bankKeeper)
+	// app.votumKeeper = votum.NewKeeper(app.cdc, app.bankKeeper)
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
@@ -201,7 +201,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 
-		votum.NewAppModule(app.votumKeeper, app.accountKeeper),
+		votum.NewAppModule(app.bankKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

@@ -5,6 +5,7 @@ import (
 
 	"github.com/EG-easy/votumchain/x/votum/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -31,14 +32,14 @@ func DefaultGenesisState() GenesisState {
 	}
 }
 
-func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, keeper bank.Keeper, data GenesisState) []abci.ValidatorUpdate {
 	// for _, record := range data.IssuerRecords {
 	// 	keeper.SetWhois(ctx, record.Value, record)
 	// }
 	return []abci.ValidatorUpdate{}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
+func ExportGenesis(ctx sdk.Context, k bank.Keeper) GenesisState {
 	// var records []Whois
 	// iterator := k.GetNamesIterator(ctx)
 	// for ; iterator.Valid(); iterator.Next() {

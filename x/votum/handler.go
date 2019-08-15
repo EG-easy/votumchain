@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
 /*
@@ -14,7 +15,7 @@ MsgsのメソッドであるValidateBasicでは、Msgsのimput時点でのチェ
 */
 
 //NewHandler はMsgのroutingを行う
-func NewHandler(keeper Keeper) sdk.Handler {
+func NewHandler(keeper bank.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case MsgIssueToken:
@@ -27,7 +28,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 //IssueTokenのMsgを扱うためのHandler
-func handleMsgIssueToken(ctx sdk.Context, keeper Keeper, msg MsgIssueToken) sdk.Result {
+func handleMsgIssueToken(ctx sdk.Context, keeper bank.Keeper, msg MsgIssueToken) sdk.Result {
 
 	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
 	newCoins := sdk.NewCoins(newCoin)

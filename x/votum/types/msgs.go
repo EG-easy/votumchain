@@ -38,12 +38,12 @@ func NewMsgIssueToken(owner sdk.AccAddress, coins sdk.Coins) MsgIssueToken {
 
 //Route module名を定義する
 func (msg MsgIssueToken) Route() string {
-	return "issuretoken"
+	return "votum"
 }
 
 //Type action名を決める
 func (msg MsgIssueToken) Type() string {
-	return "issure_token"
+	return "issue_token"
 }
 
 //ValidateBasic Msgsの中身のチェックをする

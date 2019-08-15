@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -73,7 +74,7 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // app module
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+	keeper bank.Keeper
 	ak     auth.AccountKeeper
 }
 
@@ -87,7 +88,7 @@ type AppModule struct {
 // }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, ak auth.AccountKeeper) AppModule {
+func NewAppModule(keeper bank.Keeper, ak auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -15,7 +16,7 @@ const (
 
 //NewQuerier は、querierのroutingを行う
 //queryには、Msgのようなinterfaceはないので、自分で場合分けする
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper bank.Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
 		case QueryBalanceOf:
@@ -26,13 +27,13 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryBalanceOf(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
+func queryBalanceOf(ctx sdk.Context, path []string, req abci.RequestQuery, keeper bank.Keeper) (res []byte, err sdk.Error) {
 	addr, error := sdk.AccAddressFromBech32(path[0])
 	if error != nil {
 		log.Fatal(error)
 	}
 
-	coins := keeper.coinKeeper.GetCoins(ctx, addr)
+	coins := keeper.GetCoins(ctx, addr)
 
 	if !coins.IsValid() {
 		return []byte{}, sdk.ErrUnknownRequest("could not find coin")
