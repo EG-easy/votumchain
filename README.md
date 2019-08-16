@@ -53,3 +53,17 @@ $ votumd validate-genesis
 ```
 $ votumcli tx gov submit-proposal --proposal="proposal/proposal.json" --from jack
 ```
+
+## Use docker
+
+```
+$ docker build -t votum .
+```
+
+```
+$ docker run --rm -it votum sh
+```
+
+```
+$ docker exec -it votum sh
+```
