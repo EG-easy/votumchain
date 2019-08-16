@@ -1,6 +1,7 @@
 <p align="center">
   <img src="./votum-logo.png" width="300">
 </p>
+
 # Get Started
 
 ```
