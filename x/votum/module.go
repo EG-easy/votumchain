@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -65,34 +66,22 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(StoreKey, cdc)
 }
 
-// type AppModule struct {
-// 	AppModuleBasic
-// 	keeper     Keeper
-// 	coinKeeper bank.Keeper
-// }
-
 // app module
 type AppModule struct {
 	AppModuleBasic
 	keeper bank.Keeper
+	sk     supply.Keeper
 	ak     auth.AccountKeeper
 }
 
-// NewAppModule creates a new AppModule Object
-// func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
-// 	return AppModule{
-// 		AppModuleBasic: AppModuleBasic{},
-// 		keeper:         k,
-// 		coinKeeper:     bankKeeper,
-// 	}
-// }
-
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper bank.Keeper, ak auth.AccountKeeper) AppModule {
+func NewAppModule(keeper bank.Keeper, sk supply.Keeper, ak auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
-		ak:             ak,
+
+		keeper: keeper,
+		sk:     sk,
+		ak:     ak,
 	}
 }
 
@@ -107,7 +96,7 @@ func (am AppModule) Route() string {
 }
 
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+	return NewHandler(am.keeper, am.sk)
 }
 func (am AppModule) QuerierRoute() string {
 	return ModuleName

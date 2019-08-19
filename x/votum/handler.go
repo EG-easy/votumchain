@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
 /*
@@ -14,11 +15,11 @@ MsgsのメソッドであるValidateBasicでは、Msgsのimput時点でのチェ
 */
 
 //NewHandler はMsgのroutingを行う
-func NewHandler(keeper bank.Keeper) sdk.Handler {
+func NewHandler(keeper bank.Keeper, sk supply.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case MsgIssueToken:
-			return handleMsgIssueToken(ctx, keeper, msg)
+			return handleMsgIssueToken(ctx, keeper, sk, msg)
 		default:
 			errMsg := fmt.Sprintf("Unrecognized transfercoin Msg type: %v", msg.Type())
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -27,7 +28,7 @@ func NewHandler(keeper bank.Keeper) sdk.Handler {
 }
 
 //IssueTokenのMsgを扱うためのHandler
-func handleMsgIssueToken(ctx sdk.Context, keeper bank.Keeper, msg MsgIssueToken) sdk.Result {
+func handleMsgIssueToken(ctx sdk.Context, keeper bank.Keeper, sk supply.Keeper, msg MsgIssueToken) sdk.Result {
 
 	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
 	issuer := msg.Owner
@@ -41,5 +42,11 @@ func handleMsgIssueToken(ctx sdk.Context, keeper bank.Keeper, msg MsgIssueToken)
 	if _, err := keeper.AddCoins(ctx, issuer, newCoins); err != nil {
 		return sdk.ErrInvalidCoins("Issuing New Coin is failed").Result()
 	}
+
+	beforeSupply := sk.GetSupply(ctx).GetTotal()
+	newSuppy := sdk.NewCoins(newCoin).Add(beforeSupply)
+
+	sk.SetSupply(ctx, supply.NewSupply(newSuppy))
+
 	return sdk.Result{}
 }
