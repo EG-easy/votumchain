@@ -67,3 +67,7 @@ $ docker run --rm -it votum sh
 ```
 $ docker exec -it votum sh
 ```
+
+
+## License
+Licensed under the [Apache v2 License](LICENSE).
