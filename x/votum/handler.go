@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
@@ -31,33 +30,16 @@ func NewHandler(keeper bank.Keeper) sdk.Handler {
 func handleMsgIssueToken(ctx sdk.Context, keeper bank.Keeper, msg MsgIssueToken) sdk.Result {
 
 	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
-	newCoins := sdk.NewCoins(newCoin)
+	issuer := msg.Owner
 
-	acc := auth.NewBaseAccountWithAddress(msg.Owner)
-	err := acc.SetCoins(newCoins)
-	if err != nil {
+	coins := keeper.GetCoins(ctx, issuer)
+	newCoins := sdk.NewCoins(newCoin).Add(coins)
+
+	if ok := newCoins.IsValid(); !ok {
+		return sdk.ErrInvalidCoins("Issuing New Coin is failed").Result()
+	}
+	if _, err := keeper.AddCoins(ctx, issuer, newCoins); err != nil {
 		return sdk.ErrInvalidCoins("Issuing New Coin is failed").Result()
 	}
 	return sdk.Result{}
 }
-
-// func handleMsgBuyName(ctx sdk.Context, keeper Keeper, msg MsgBuyName) sdk.Result {
-// 	if keeper.GetPrice(ctx, msg.Name).IsAllGT(msg.Bid) { // Checks if the the bid price is greater than the price paid by the current owner
-// 		return sdk.ErrInsufficientCoins("Bid not high enough").Result() // If not, throw an error
-// 	}
-// 	if keeper.HasOwner(ctx, msg.Name) {
-// 		err := keeper.coinKeeper.SendCoins(ctx, msg.Buyer, keeper.GetOwner(ctx, msg.Name), msg.Bid)
-// 		if err != nil {
-// 			return sdk.ErrInsufficientCoins("Buyer does not have enough coins").Result()
-// 		}
-// 	} else {
-// 		_, err := keeper.coinKeeper.SubtractCoins(ctx, msg.Buyer, msg.Bid) // If so, deduct the Bid amount from the sender
-// 		if err != nil {
-// 			return sdk.ErrInsufficientCoins("Buyer does not have enough coins").Result()
-// 		}
-// 	}
-// 	keeper.SetOwner(ctx, msg.Name, msg.Buyer)
-// 	keeper.SetPrice(ctx, msg.Name, msg.Bid)
-// 	return sdk.Result{}
-// }
-//

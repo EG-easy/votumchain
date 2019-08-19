@@ -1,37 +1,59 @@
 package votum
 
-//Keeper は、storageを管理するstructで、getter/setterのメソッドを実装する
+// //Keeper は、storageを管理するstructで、getter/setterのメソッドを実装する
 // type Keeper struct {
-// 	coinKeeper bank.Keeper  //coinの発行にはKeeperより上位権限をもつBaseKeeperが必要
-// 	cdc        *codec.Codec //codecはgo-aminoを用いて、byte codeをdecode/encodeしてtendermint側と通信するときに必要となる
+// 	bk  types.BankKeeper
+// 	ak  types.AccountKeeper
+// 	cdc *codec.Codec //codecはgo-aminoを用いて、byte codeをdecode/encodeしてtendermint側と通信するときに必要となる
 // }
 //
 // //NewKeeper 新しいKeeperを生成する
-// func NewKeeper(cdc *codec.Codec, coinKeeper bank.Keeper) Keeper {
+// func NewKeeper(cdc *codec.Codec, bk bank.BaseKeeper, ak auth.AccountKeeper) Keeper {
 // 	return Keeper{
-// 		coinKeeper: coinKeeper,
-// 		cdc:        cdc,
+// 		bk:  bk,
+// 		ak:  ak,
+// 		cdc: cdc,
 // 	}
-// }
-
-// Gets the entire Whois metadata struct for a name
-// func (k Keeper) GetIssuers(ctx sdk.Context, addr sdk.AccAddress) types.Issuers {
-// 	coins := k.coinKeeper.GetCoins(ctx, addr)
-// 	store := ctx.KVStore(k.storeKey)
-// 	if !k.IsNamePresent(ctx, name) {
-// 		return NewWhois()
-// 	}
-// 	bz := store.Get([]byte(name))
-// 	var issuers Issuers
-// 	k.cdc.MustUnmarshalBinaryBare(bz, &issuers)
-// 	return issuers
 // }
 //
-// // Sets the entire Whois metadata struct for a name
-// func (k Keeper) SetIssuers(ctx sdk.Context, name string, whois Whois) {
-// 	if whois.Owner.Empty() {
-// 		return
+// func (k Keeper) IssueToken(ctx sdk.Context, issuer sdk.AccAddress, newCoin sdk.Coin) sdk.Error {
+//
+// 	// acc := k.bk.GetAccount(ctx, issuer)
+// 	// coins := acc.GetCoins()
+// 	// newCoins := sdk.NewCoins(newCoin).Add(coins)
+// 	coins := k.bk.GetCoins(ctx, issuer)
+// 	newCoins := sdk.NewCoins(newCoin).Add(coins)
+//
+// 	// log.Println(acc)
+// 	log.Println(coins)
+// 	log.Println(newCoins)
+//
+// 	if ok := newCoins.IsValid(); !ok {
+// 		return sdk.ErrInvalidCoins("Issuing New Coin is failed")
 // 	}
-// 	store := ctx.KVStore(k.storeKey)
-// 	store.Set([]byte(name), k.cdc.MustMarshalBinaryBare(whois))
+//
+// 	if _, err := k.bk.AddCoins(ctx, issuer, newCoins); err != nil {
+// 		return sdk.ErrInvalidCoins("Issuing New Coin is failed")
+// 	}
+// 	return nil
+// }
+//
+// // GetCoins returns the coins at the addr.
+// func (keeper Keeper) GetCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
+// 	acc := keeper.ak.GetAccount(ctx, addr)
+// 	if acc == nil {
+// 		return sdk.NewCoins()
+// 	}
+// 	return acc.GetCoins()
+// }
+//
+// // GetAccount implements sdk.AccountKeeper.
+// func (keeper Keeper) GetAccount(ctx sdk.Context, addr sdk.AccAddress) exported.Account {
+// 	store := ctx.KVStore(keeper.ak.key)
+// 	bz := store.Get(types.AddressStoreKey(addr))
+// 	if bz == nil {
+// 		return nil
+// 	}
+// 	acc := keeper.decodeAccount(bz)
+// 	return acc
 // }
