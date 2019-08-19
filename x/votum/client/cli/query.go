@@ -1,9 +1,12 @@
 package cli
 
 import (
-	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +22,39 @@ func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	return votumQueryCmd
 }
 
-// func GetCmdBalanceOf(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetAccountCmd returns a query account that will display the state of the
+// account at a given address.
+func GetAccountCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "account [address]",
+		Short: "Query account balance",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			accGetter := types.NewAccountRetriever(cliCtx)
+
+			key, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			if err := accGetter.EnsureExists(key); err != nil {
+				return err
+			}
+
+			acc, err := accGetter.GetAccount(key)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(acc)
+		},
+	}
+
+	return flags.GetCommands(cmd)[0]
+}
+
+// func GetCmdBalanceOfTokens(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // 	return &cobra.Command{
 // 		Use:   "balanceOf [addr]",
 // 		Short: "balanceOf addr",

@@ -1,22 +1,18 @@
 package types
 
-//
-// import "strings"
-//
-// // Query Result Payload for a resolve query
-// type QueryResResolve struct {
-// 	Value string `json:"value"`
-// }
-//
-// // implement fmt.Stringer
-// func (r QueryResResolve) String() string {
-// 	return r.Value
-// }
-//
-// // Query Result Payload for a names query
-// type QueryResNames []string
-//
-// // implement fmt.Stringer
-// func (n QueryResNames) String() string {
-// 	return strings.Join(n[:], "\n")
-// }
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
+// query endpoints supported by the auth Querier
+const (
+	QueryAccount = "account"
+)
+
+// QueryAccountParams defines the params for querying accounts.
+type QueryAccountParams struct {
+	Address sdk.AccAddress
+}
+
+// NewQueryAccountParams creates a new instance of QueryAccountParams.
+func NewQueryAccountParams(addr sdk.AccAddress) QueryAccountParams {
+	return QueryAccountParams{Address: addr}
+}
