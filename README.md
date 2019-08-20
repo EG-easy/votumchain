@@ -68,6 +68,53 @@ $ docker run --rm -it votum sh
 $ docker exec -it votum sh
 ```
 
+## 4 validators local private net
+
+```
+# Work from the votumchain Repo
+$ cd $GOPATH/src/github.com/EG-easy/votumchain
+
+# Build the linux binary in ./build
+$ make build-linux
+
+# Build votumchain/votumdnode image
+$ make build-docker-votumdnode
+```
+
+### Run Your Testnet
+
+To start a 4 node testnet run:
+
+```
+make localnet-start
+```
+
+This command creates a 4-node network using the votumdnode image.
+The ports for each node are found in this table:
+
+| Node ID | P2P Port | RPC Port |
+| --------|-------|------|
+| `votumnode0` | `26656` | `26657` |
+| `votumnode1` | `26659` | `26660` |
+| `votumnode2` | `26661` | `26662` |
+| `votumnode3` | `26663` | `26664` |
+
+To update the binary, just rebuild it and restart the nodes:
+
+```
+make build-linux localnet-start
+```
+
+
+### Keys & Accounts
+
+To interact with `votumcli` and start querying state or creating txs, you use the
+`votumcli` directory of any given node as your `home`, for example:
+
+```shell
+votumcli keys list --home ./build/node0/votumcli
+```
+
 
 ## License
 Licensed under the [Apache v2 License](LICENSE).
