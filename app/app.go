@@ -4,10 +4,11 @@ import (
 	"io"
 	"os"
 
+	"github.com/EG-easy/votumchain/x/votum"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -50,12 +50,23 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distrclient.ProposalHandler),
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+
+		votum.AppModule{},
 	)
+	// module account permissions
+	maccPerms = map[string][]string{
+		auth.FeeCollectorName:     nil,
+		distr.ModuleName:          nil,
+		mint.ModuleName:           {supply.Minter},
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		gov.ModuleName:            {supply.Burner},
+	}
 )
 
 // custom tx codec
@@ -64,6 +75,8 @@ func MakeCodec() *codec.Codec {
 	ModuleBasics.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
+	codec.RegisterEvidences(cdc)
+
 	return cdc
 }
 
@@ -75,18 +88,24 @@ type votumApp struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keyMain     *sdk.KVStoreKey
-	keyAccount  *sdk.KVStoreKey
-	keySupply   *sdk.KVStoreKey
-	keyStaking  *sdk.KVStoreKey
-	tkeyStaking *sdk.TransientStoreKey
-	keySlashing *sdk.KVStoreKey
-	keyMint     *sdk.KVStoreKey
-	keyDistr    *sdk.KVStoreKey
-	tkeyDistr   *sdk.TransientStoreKey
-	keyGov      *sdk.KVStoreKey
-	keyParams   *sdk.KVStoreKey
-	tkeyParams  *sdk.TransientStoreKey
+	keys  map[string]*sdk.KVStoreKey
+	tkeys map[string]*sdk.TransientStoreKey
+
+	// // keys to access the substores
+	// keyMain     *sdk.KVStoreKey
+	// keyAccount  *sdk.KVStoreKey
+	// keySupply   *sdk.KVStoreKey
+	// keyStaking  *sdk.KVStoreKey
+	// tkeyStaking *sdk.TransientStoreKey
+	// keySlashing *sdk.KVStoreKey
+	// keyMint     *sdk.KVStoreKey
+	// keyDistr    *sdk.KVStoreKey
+	// tkeyDistr   *sdk.TransientStoreKey
+	// keyGov      *sdk.KVStoreKey
+	// keyParams   *sdk.KVStoreKey
+	// tkeyParams  *sdk.TransientStoreKey
+	//
+	// keyVotum *sdk.KVStoreKey
 
 	// keepers
 	accountKeeper  auth.AccountKeeper
@@ -99,6 +118,8 @@ type votumApp struct {
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
+
+	// votumKeeper votum.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -114,26 +135,23 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 
+	keys := sdk.NewKVStoreKeys(
+		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
+		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		gov.StoreKey, params.StoreKey,
+	)
+	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+
 	var app = &votumApp{
 		BaseApp:        bApp,
 		cdc:            cdc,
 		invCheckPeriod: invCheckPeriod,
-		keyMain:        sdk.NewKVStoreKey(bam.MainStoreKey),
-		keyAccount:     sdk.NewKVStoreKey(auth.StoreKey),
-		keyStaking:     sdk.NewKVStoreKey(staking.StoreKey),
-		keySupply:      sdk.NewKVStoreKey(supply.StoreKey),
-		tkeyStaking:    sdk.NewTransientStoreKey(staking.TStoreKey),
-		keyMint:        sdk.NewKVStoreKey(mint.StoreKey),
-		keyDistr:       sdk.NewKVStoreKey(distr.StoreKey),
-		tkeyDistr:      sdk.NewTransientStoreKey(distr.TStoreKey),
-		keySlashing:    sdk.NewKVStoreKey(slashing.StoreKey),
-		keyGov:         sdk.NewKVStoreKey(gov.StoreKey),
-		keyParams:      sdk.NewKVStoreKey(params.StoreKey),
-		tkeyParams:     sdk.NewTransientStoreKey(params.TStoreKey),
+		keys:           keys,
+		tkeys:          tkeys,
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -143,35 +161,26 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	// account permissions
-	maccPerms := map[string][]string{
-		auth.FeeCollectorName:     []string{supply.Basic},
-		distr.ModuleName:          []string{supply.Basic},
-		mint.ModuleName:           []string{supply.Minter},
-		staking.BondedPoolName:    []string{supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: []string{supply.Burner, supply.Staking},
-		gov.ModuleName:            []string{supply.Burner},
-	}
-
 	// add keepers
-	app.accountKeeper = auth.NewAccountKeeper(app.cdc, app.keyAccount, authSubspace, auth.ProtoBaseAccount)
-	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace)
-	app.supplyKeeper = supply.NewKeeper(app.cdc, app.keySupply, app.accountKeeper, app.bankKeeper, supply.DefaultCodespace, maccPerms)
-	stakingKeeper := staking.NewKeeper(app.cdc, app.keyStaking, app.tkeyStaking,
+	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
+	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
+	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
+	stakingKeeper := staking.NewKeeper(app.cdc, keys[staking.StoreKey], tkeys[staking.TStoreKey],
 		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace)
-	app.mintKeeper = mint.NewKeeper(app.cdc, app.keyMint, mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
-	app.distrKeeper = distr.NewKeeper(app.cdc, app.keyDistr, distrSubspace, &stakingKeeper,
-		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName)
-	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, &stakingKeeper,
+	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
+	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], distrSubspace, &stakingKeeper,
+		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
+	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper,
 		slashingSubspace, slashing.DefaultCodespace)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
+	// app.votumKeeper = votum.NewKeeper(app.cdc, app.bankKeeper)
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
-	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.paramsKeeper, govSubspace,
+	app.govKeeper = gov.NewKeeper(app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter)
 
 	// register the staking hooks
@@ -184,13 +193,15 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(app.crisisKeeper),
+		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
+
+		votum.NewAppModule(app.bankKeeper, app.supplyKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -202,17 +213,27 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
-	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, supply.ModuleName, distr.ModuleName,
-		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, crisis.ModuleName, genutil.ModuleName)
+	app.mm.SetOrderInitGenesis(
+		genaccounts.ModuleName,
+		distr.ModuleName,
+		staking.ModuleName,
+		auth.ModuleName,
+		bank.ModuleName,
+		slashing.ModuleName,
+		gov.ModuleName,
+		mint.ModuleName,
+		supply.ModuleName,
+		crisis.ModuleName,
+		genutil.ModuleName,
+		votum.ModuleName,
+	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	// initialize stores
-	app.MountStores(app.keyMain, app.keyAccount, app.keySupply, app.keyStaking,
-		app.keyMint, app.keyDistr, app.keySlashing, app.keyGov, app.keyParams,
-		app.tkeyParams, app.tkeyStaking, app.tkeyDistr)
+	app.MountKVStores(keys)
+	app.MountTransientStores(tkeys)
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
@@ -221,7 +242,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keyMain)
+		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 		if err != nil {
 			cmn.Exit(err.Error())
 		}
@@ -248,5 +269,15 @@ func (app *votumApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abc
 
 // load a particular height
 func (app *votumApp) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keyMain)
+	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+}
+
+// ModuleAccountAddrs returns all the app's module account addresses.
+func (app *votumApp) ModuleAccountAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		modAccAddrs[app.supplyKeeper.GetModuleAddress(acc).String()] = true
+	}
+
+	return modAccAddrs
 }

@@ -3,28 +3,24 @@ package votum
 import (
 	"fmt"
 
+	"github.com/EG-easy/votumchain/x/votum/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 type GenesisState struct {
-	WhoisRecords []Whois `json:"whois_records"`
+	IssuerRecords []types.Issuers `json:"tokens"`
 }
 
-func NewGenesisState(whoIsRecords []Whois) GenesisState {
-	return GenesisState{WhoisRecords: nil}
+func NewGenesisState(issuerRecords []types.Issuers) GenesisState {
+	return GenesisState{IssuerRecords: nil}
 }
 
 func ValidateGenesis(data GenesisState) error {
-	for _, record := range data.WhoisRecords {
-		if record.Owner == nil {
-			return fmt.Errorf("Invalid WhoisRecord: Value: %s. Error: Missing Owner", record.Value)
-		}
-		if record.Value == "" {
-			return fmt.Errorf("Invalid WhoisRecord: Owner: %s. Error: Missing Value", record.Owner)
-		}
-		if record.Price == nil {
-			return fmt.Errorf("Invalid WhoisRecord: Value: %s. Error: Missing Price", record.Value)
+	for _, record := range data.IssuerRecords {
+		if record.Tokens == nil {
+			return fmt.Errorf("Invalid WhoisRecord: Value: %s. Error: Missing Owner", record.Tokens)
 		}
 	}
 	return nil
@@ -32,25 +28,27 @@ func ValidateGenesis(data GenesisState) error {
 
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		WhoisRecords: []Whois{},
+		IssuerRecords: []types.Issuers{},
 	}
 }
 
-func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) []abci.ValidatorUpdate {
-	for _, record := range data.WhoisRecords {
-		keeper.SetWhois(ctx, record.Value, record)
-	}
+func InitGenesis(ctx sdk.Context, keeper bank.Keeper, data GenesisState) []abci.ValidatorUpdate {
+	// for _, record := range data.IssuerRecords {
+	// 	keeper.SetWhois(ctx, record.Value, record)
+	// }
 	return []abci.ValidatorUpdate{}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
-	var records []Whois
-	iterator := k.GetNamesIterator(ctx)
-	for ; iterator.Valid(); iterator.Next() {
-		name := string(iterator.Key())
-		var whois Whois
-		whois = k.GetWhois(ctx, name)
-		records = append(records, whois)
+func ExportGenesis(ctx sdk.Context, k bank.Keeper) GenesisState {
+	// var records []Whois
+	// iterator := k.GetNamesIterator(ctx)
+	// for ; iterator.Valid(); iterator.Next() {
+	// 	name := string(iterator.Key())
+	// 	var whois Whois
+	// 	whois = k.GetWhois(ctx, name)
+	// 	records = append(records, whois)
+	// }
+	return GenesisState{
+		IssuerRecords: []types.Issuers{},
 	}
-	return GenesisState{WhoisRecords: records}
 }

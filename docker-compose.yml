@@ -1,0 +1,67 @@
+version: '3'
+
+services:
+  votumdnode0:
+    container_name: votumdnode0
+    image: "votumchain/votumdnode"
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-votumd.log}
+    volumes:
+      - ./build:/votumd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.2
+
+  votumdnode1:
+    container_name: votumdnode1
+    image: "votumchain/votumdnode"
+    ports:
+      - "26659-26660:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-votumd.log}
+    volumes:
+      - ./build:/votumd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.3
+
+  votumdnode2:
+    container_name: votumdnode2
+    image: "votumchain/votumdnode"
+    environment:
+      - ID=2
+      - LOG=${LOG:-votumd.log}
+    ports:
+      - "26661-26662:26656-26657"
+    volumes:
+      - ./build:/votumd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.4
+
+  votumdnode3:
+    container_name: votumdnode3
+    image: "votumchain/votumdnode"
+    environment:
+      - ID=3
+      - LOG=${LOG:-votumd.log}
+    ports:
+      - "26663-26664:26656-26657"
+    volumes:
+      - ./build:/votumd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.5
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: 192.168.10.0/16

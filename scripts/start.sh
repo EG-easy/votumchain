@@ -1,3 +1,5 @@
+rm -rf ~/.votumd
+rm -rf ~/.votumcli
 # Initialize configuration files and genesis file
 votumd init eguegu --chain-id testchain
 
@@ -8,7 +10,7 @@ votumcli keys add jack
 # votumcli keys add alice
 
 # Add both accounts, with coins to the genesis file
-votumd add-genesis-account $(votumcli keys show jack -a) 1000votum,100000000stake
+votumd add-genesis-account $(votumcli keys show jack -a) 10000votum,100000000stake
 # votumd add-genesis-account $(votumcli keys show alice -a) 1000votum
 
 # Configure your CLI to eliminate need for chain-id flag
@@ -18,3 +20,7 @@ votumcli config indent true
 votumcli config trust-node true
 
 votumd gentx --name jack
+
+votumd collect-gentxs
+
+votumd validate-genesis

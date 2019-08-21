@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const RouterKey = ModuleName // this was defined in your key.go file
+
 /*
 Msgsは、stateの変更のtransactionを実行する時に渡すパラメータで、Txsにラップされてnetworkにbroadcastされる
 cosmos-sdkを使うことで、Msgsをラップしたり、Txsからのアンラップしたりしてくれるので、実質的にMsgsの定義だけすれば良い
@@ -20,45 +22,43 @@ type Msg interface {
 }
 */
 
-//MsgTransferCoin TransferCoinに関するMsg interfaceの実装
-type MsgTransferCoin struct {
-	FromAddr sdk.AccAddress
-	ToAddr   sdk.AccAddress
-	Amt      sdk.Coins
+//MsgIssueToken IssueTokenに関するMsg interfaceの実装
+type MsgIssueToken struct {
+	Owner sdk.AccAddress
+	Coins sdk.Coins
 }
 
-//NewMsgTransferCoin 新しいMsgTransferCoinを生成
-func NewMsgTransferCoin(fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) MsgTransferCoin {
-	return MsgTransferCoin{
-		FromAddr: fromAddr,
-		ToAddr:   toAddr,
-		Amt:      amt,
+//NewMsgIssueToken 新しいMsgIssueTokenを生成
+func NewMsgIssueToken(owner sdk.AccAddress, coins sdk.Coins) MsgIssueToken {
+	return MsgIssueToken{
+		Owner: owner,
+		Coins: coins,
 	}
 }
 
 //Route module名を定義する
-func (msg MsgTransferCoin) Route() string {
-	return "transfercoin"
+func (msg MsgIssueToken) Route() string {
+	return "votum"
 }
 
 //Type action名を決める
-func (msg MsgTransferCoin) Type() string {
-	return "transfer_coin"
+func (msg MsgIssueToken) Type() string {
+	return "issue_token"
 }
 
 //ValidateBasic Msgsの中身のチェックをする
-func (msg MsgTransferCoin) ValidateBasic() sdk.Error {
-	if msg.ToAddr.Empty() {
-		return sdk.ErrInvalidAddress(msg.ToAddr.String())
+func (msg MsgIssueToken) ValidateBasic() sdk.Error {
+	if msg.Owner.Empty() {
+		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
-	if len(msg.Amt) == 0 {
-		return sdk.ErrUnknownRequest("Amount cannot be empty")
+	if msg.Coins[0].Amount.IsNegative() {
+		return sdk.ErrUnknownRequest("Amount cannot be negative")
 	}
 	return nil
 }
 
 //GetSignBytes 署名するためのMsgデータを取得する
-func (msg MsgTransferCoin) GetSignBytes() []byte {
+func (msg MsgIssueToken) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -67,6 +67,6 @@ func (msg MsgTransferCoin) GetSignBytes() []byte {
 }
 
 //GetSigners 誰の署名が必要か定義する
-func (msg MsgTransferCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.FromAddr}
+func (msg MsgIssueToken) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Owner}
 }

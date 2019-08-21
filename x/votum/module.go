@@ -3,16 +3,18 @@ package votum
 import (
 	"encoding/json"
 
+	"github.com/EG-easy/votumchain/x/votum/client/cli"
+	"github.com/EG-easy/votumchain/x/votum/client/rest"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/EG-easy/votumchain/x/votum/client/cli"
-	"github.com/cosmos/EG-easy/votumchain/x/votum/client/rest"
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -64,18 +66,22 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(StoreKey, cdc)
 }
 
+// app module
 type AppModule struct {
 	AppModuleBasic
-	keeper     Keeper
-	coinKeeper bank.Keeper
+	keeper bank.Keeper
+	sk     supply.Keeper
+	ak     auth.AccountKeeper
 }
 
-// NewAppModule creates a new AppModule Object
-func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
+// NewAppModule creates a new AppModule object
+func NewAppModule(keeper bank.Keeper, sk supply.Keeper, ak auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
-		coinKeeper:     bankKeeper,
+
+		keeper: keeper,
+		sk:     sk,
+		ak:     ak,
 	}
 }
 
@@ -90,7 +96,7 @@ func (am AppModule) Route() string {
 }
 
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+	return NewHandler(am.keeper, am.sk)
 }
 func (am AppModule) QuerierRoute() string {
 	return ModuleName
@@ -100,12 +106,10 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
 }
 
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) sdk.Tags {
-	return sdk.EmptyTags()
-}
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) ([]abci.ValidatorUpdate, sdk.Tags) {
-	return []abci.ValidatorUpdate{}, sdk.EmptyTags()
+func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
