@@ -10,6 +10,7 @@ import (
 	"github.com/EG-easy/votumchain/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
@@ -59,6 +60,7 @@ func main() {
 		client.LineBreak,
 		keys.Commands(),
 		client.LineBreak,
+		version.Cmd,
 	)
 
 	executor := cli.PrepareMainCmd(rootCmd, "VOTUM", app.DefaultCLIHome)
