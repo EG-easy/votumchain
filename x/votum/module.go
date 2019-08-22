@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +26,9 @@ var (
 )
 
 // app module Basics object
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	proposalHandlers []client.ProposalHandler // proposal handlers which live in governance cli and rest
+}
 
 func (AppModuleBasic) Name() string {
 	return ModuleName
@@ -62,26 +64,33 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 // Get the root tx command of this module
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(StoreKey, cdc)
+func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+
+	var proposalCLIHandlers []*cobra.Command
+	for _, proposalHandler := range a.proposalHandlers {
+		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler(cdc))
+	}
+
+	return cli.GetTxCmd(StoreKey, cdc, proposalCLIHandlers)
 }
 
 // app module
 type AppModule struct {
 	AppModuleBasic
-	keeper bank.Keeper
-	sk     supply.Keeper
-	ak     auth.AccountKeeper
+	keeper       Keeper
+	supplyKeeper SupplyKeeper
+	bk           bank.Keeper
+	sk           supply.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper bank.Keeper, sk supply.Keeper, ak auth.AccountKeeper) AppModule {
+func NewAppModule(keeper Keeper, supplyKeeper SupplyKeeper, bk bank.Keeper, sk supply.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-
-		keeper: keeper,
-		sk:     sk,
-		ak:     ak,
+		keeper:         keeper,
+		supplyKeeper:   supplyKeeper,
+		bk:             bk,
+		sk:             sk,
 	}
 }
 
@@ -96,14 +105,14 @@ func (am AppModule) Route() string {
 }
 
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper, am.sk)
+	return NewHandler(am.keeper, am.bk, am.sk)
 }
 func (am AppModule) QuerierRoute() string {
 	return ModuleName
 }
 
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+	return NewQuerier(am.bk)
 }
 
 func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
@@ -115,7 +124,8 @@ func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.Validator
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	return []abci.ValidatorUpdate{}
 }
 
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
