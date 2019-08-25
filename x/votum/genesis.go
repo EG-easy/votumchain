@@ -91,7 +91,7 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 // InitGenesis - store genesis parameters
-func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper SupplyKeeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 
 	k.setProposalID(ctx, data.StartingProposalID)
 	k.setDepositParams(ctx, data.DepositParams)
@@ -129,7 +129,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper SupplyKeeper, data Gene
 		if err := moduleAcc.SetCoins(totalDeposits); err != nil {
 			panic(err)
 		}
-		supplyKeeper.SetModuleAccount(ctx, moduleAcc)
+		k.supplyKeeper.SetModuleAccount(ctx, moduleAcc)
 	}
 }
 

@@ -66,6 +66,7 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		votum.ModuleName:          {supply.Burner},
 	}
 )
 
@@ -135,7 +136,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -170,7 +171,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// add votum keeper
 	votumRouter := gov.NewRouter()
 	votumRouter.AddRoute(votum.RouterKey, gov.ProposalHandler)
-	app.votumKeeper = votum.NewKeeper(app.cdc, keys[votum.StoreKey], app.bankKeeper, app.paramsKeeper, votumSubspace,
+	app.votumKeeper = votum.NewKeeper(app.cdc, keys[votum.StoreKey], app.paramsKeeper, votumSubspace,
 		app.supplyKeeper, votum.DefaultCodespace, votumRouter)
 
 	// register the staking hooks
@@ -191,7 +192,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 
-		votum.NewAppModule(app.votumKeeper, app.supplyKeeper, app.bankKeeper, app.supplyKeeper),
+		votum.NewAppModule(app.votumKeeper, app.bankKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -199,7 +200,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
 
-	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName)
+	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName, votum.ModuleName)
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.

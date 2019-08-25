@@ -77,18 +77,16 @@ func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // app module
 type AppModule struct {
 	AppModuleBasic
-	keeper       Keeper
-	supplyKeeper SupplyKeeper
-	bk           bank.Keeper
-	sk           supply.Keeper
+	keeper Keeper
+	bk     bank.Keeper
+	sk     supply.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper SupplyKeeper, bk bank.Keeper, sk supply.Keeper) AppModule {
+func NewAppModule(keeper Keeper, bk bank.Keeper, sk supply.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		supplyKeeper:   supplyKeeper,
 		bk:             bk,
 		sk:             sk,
 	}
@@ -124,7 +122,7 @@ func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.Validator
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

@@ -9,14 +9,12 @@ import (
 	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // Votum Keeper
 type Keeper struct {
-	bankKeeper bank.Keeper
 	// The reference to the Param Keeper to get and set Global Params
 	paramsKeeper params.Keeper
 
@@ -45,7 +43,7 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to tokens for the voting in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, bankKeeper bank.Keeper, paramsKeeper params.Keeper, paramSpace params.Subspace,
+	cdc *codec.Codec, key sdk.StoreKey, paramsKeeper params.Keeper, paramSpace params.Subspace,
 	supplyKeeper SupplyKeeper, codespace sdk.CodespaceType, rtr Router,
 ) Keeper {
 
@@ -61,7 +59,6 @@ func NewKeeper(
 
 	return Keeper{
 		storeKey:     key,
-		bankKeeper:   bankKeeper,
 		paramsKeeper: paramsKeeper,
 		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
 		supplyKeeper: supplyKeeper,
