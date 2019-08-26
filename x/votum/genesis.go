@@ -37,11 +37,11 @@ func NewGenesisState(startingProposalID uint64, dp DepositParams, vp VotingParam
 
 // get raw genesis raw message for testing
 func DefaultGenesisState() GenesisState {
-	minDepositTokens := sdk.TokensFromConsensusPower(10)
+	minDepositTokens := sdk.TokensFromConsensusPower(1)
 	return GenesisState{
 		StartingProposalID: 1,
 		DepositParams: DepositParams{
-			MinDeposit:       sdk.Coins{sdk.NewCoin("votum", minDepositTokens)},
+			MinDeposit:       sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minDepositTokens)},
 			MaxDepositPeriod: DefaultPeriod,
 		},
 		VotingParams: VotingParams{

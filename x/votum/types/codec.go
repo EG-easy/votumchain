@@ -20,10 +20,3 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgVote{}, "votum/MsgVote", nil)
 	cdc.RegisterConcrete(TextProposal{}, "votum/TextProposal", nil)
 }
-
-// // RegisterProposalTypeCodec registers an external proposal content type defined
-// // in another module for the internal ModuleCdc. This allows the MsgSubmitProposal
-// // to be correctly Amino encoded and decoded.
-// func RegisterProposalTypeCodec(o interface{}, name string) {
-// 	ModuleCdc.RegisterConcrete(o, name, nil)
-// }

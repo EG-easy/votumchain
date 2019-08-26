@@ -17,7 +17,6 @@ const (
 )
 
 var (
-	// TODO: Msgをここで定める
 	ModuleCdc     = types.ModuleCdc
 	RegisterCodec = types.RegisterCodec
 )
@@ -84,10 +83,7 @@ var (
 )
 
 type (
-	Router = gov.Router
-	// MsgSubmitProposal = gov.MsgSubmitProposal
-	// MsgDeposit        = gov.MsgDeposit
-	// MsgVote           = gov.MsgVote
+	Router         = gov.Router
 	DepositParams  = gov.DepositParams
 	VotingParams   = gov.VotingParams
 	TallyParams    = gov.TallyParams

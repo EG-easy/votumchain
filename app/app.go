@@ -56,7 +56,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 
-		votum.AppModule{},
+		votum.NewAppModuleBasic(),
 	)
 	// module account permissions
 	maccPerms = map[string][]string{
@@ -200,7 +200,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
 
-	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName, votum.ModuleName)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, votum.ModuleName)
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
