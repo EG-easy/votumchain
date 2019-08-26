@@ -16,7 +16,7 @@ MsgsのメソッドであるValidateBasicでは、Msgsのimput時点でのチェ
 */
 
 //NewHandler はMsgのroutingを行う
-func NewHandler(keeper Keeper, bk bank.Keeper, sk supply.Keeper) sdk.Handler {
+func NewHandler(keeper Keeper, bk bank.Keeper, sk SupplyKeeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case MsgIssueToken:
@@ -39,7 +39,7 @@ func NewHandler(keeper Keeper, bk bank.Keeper, sk supply.Keeper) sdk.Handler {
 }
 
 //IssueTokenのMsgを扱うためのHandler
-func handleMsgIssueToken(ctx sdk.Context, bk bank.Keeper, sk supply.Keeper, msg MsgIssueToken) sdk.Result {
+func handleMsgIssueToken(ctx sdk.Context, bk bank.Keeper, sk SupplyKeeper, msg MsgIssueToken) sdk.Result {
 
 	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
 	issuer := msg.Owner

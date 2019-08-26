@@ -138,9 +138,9 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 				return err
 			}
 
-			content := gov.ContentFromProposalType(proposal.Title, proposal.Description, proposal.Type)
+			content := types.ContentFromProposalType(proposal.Title, proposal.Description, proposal.Type)
 
-			msg := gov.NewMsgSubmitProposal(content, amount, cliCtx.GetFromAddress())
+			msg := types.NewMsgSubmitProposal(content, amount, cliCtx.GetFromAddress())
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -193,7 +193,7 @@ $ %s tx gov deposit 1 10stake --from mykey
 				return err
 			}
 
-			msg := gov.NewMsgDeposit(from, proposalID, amount)
+			msg := types.NewMsgDeposit(from, proposalID, amount)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -241,7 +241,7 @@ $ %s tx gov vote 1 yes --from mykey
 			}
 
 			// Build vote message and run basic validation
-			msg := gov.NewMsgVote(from, proposalID, byteVoteOption)
+			msg := types.NewMsgVote(from, proposalID, byteVoteOption)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

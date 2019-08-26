@@ -3,7 +3,6 @@ package votum
 import (
 	"fmt"
 
-	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -13,25 +12,25 @@ import (
 //querierはapplicationの状態を確認するためのメソッドを定義する
 
 const (
-	QueryParams    = types.QueryParams
-	QueryProposals = types.QueryProposals
-	QueryProposal  = types.QueryProposal
-	QueryDeposits  = types.QueryDeposits
-	QueryDeposit   = types.QueryDeposit
-	QueryVotes     = types.QueryVotes
-	QueryVote      = types.QueryVote
-	QueryTally     = types.QueryTally
+	QueryParams    = gov.QueryParams
+	QueryProposals = gov.QueryProposals
+	QueryProposal  = gov.QueryProposal
+	QueryDeposits  = gov.QueryDeposits
+	QueryDeposit   = gov.QueryDeposit
+	QueryVotes     = gov.QueryVotes
+	QueryVote      = gov.QueryVote
+	QueryTally     = gov.QueryTally
 
-	ParamDeposit  = types.ParamDeposit
-	ParamVoting   = types.ParamVoting
-	ParamTallying = types.ParamTallying
+	ParamDeposit  = gov.ParamDeposit
+	ParamVoting   = gov.ParamVoting
+	ParamTallying = gov.ParamTallying
 )
 
 type (
-	QueryDepositParams   = types.QueryDepositParams
-	QueryProposalParams  = types.QueryProposalParams
-	QueryProposalsParams = types.QueryProposalsParams
-	QueryVoteParams      = types.QueryVoteParams
+	QueryDepositParams   = gov.QueryDepositParams
+	QueryProposalParams  = gov.QueryProposalParams
+	QueryProposalsParams = gov.QueryProposalsParams
+	QueryVoteParams      = gov.QueryVoteParams
 )
 
 type (

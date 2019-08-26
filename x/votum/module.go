@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -79,11 +78,11 @@ type AppModule struct {
 	AppModuleBasic
 	keeper Keeper
 	bk     bank.Keeper
-	sk     supply.Keeper
+	sk     SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, bk bank.Keeper, sk supply.Keeper) AppModule {
+func NewAppModule(keeper Keeper, bk bank.Keeper, sk SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

@@ -11,7 +11,7 @@ import (
 
 const (
 	// Default period for deposits & voting
-	DefaultPeriod time.Duration = 1200 * time.Second // 20 mins
+	DefaultPeriod time.Duration = 120 * time.Second // 20 mins
 )
 
 // GenesisState - all staking state that must be provided at genesis
@@ -41,7 +41,7 @@ func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		StartingProposalID: 1,
 		DepositParams: DepositParams{
-			MinDeposit:       sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, minDepositTokens)},
+			MinDeposit:       sdk.Coins{sdk.NewCoin("votum", minDepositTokens)},
 			MaxDepositPeriod: DefaultPeriod,
 		},
 		VotingParams: VotingParams{
@@ -162,47 +162,3 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		TallyParams:        tallyParams,
 	}
 }
-
-// type GenesisState struct {
-// 	IssuerRecords []types.Issuers `json:"tokens"`
-// }
-//
-// func NewGenesisState(issuerRecords []types.Issuers) GenesisState {
-// 	return GenesisState{IssuerRecords: nil}
-// }
-//
-// func ValidateGenesis(data GenesisState) error {
-// 	for _, record := range data.IssuerRecords {
-// 		if record.Tokens == nil {
-// 			return fmt.Errorf("Invalid WhoisRecord: Value: %s. Error: Missing Owner", record.Tokens)
-// 		}
-// 	}
-// 	return nil
-// }
-//
-// func DefaultGenesisState() GenesisState {
-// 	return GenesisState{
-// 		IssuerRecords: []types.Issuers{},
-// 	}
-// }
-//
-// func InitGenesis(ctx sdk.Context, keeper bank.Keeper, data GenesisState) []abci.ValidatorUpdate {
-// 	// for _, record := range data.IssuerRecords {
-// 	// 	keeper.SetWhois(ctx, record.Value, record)
-// 	// }
-// 	return []abci.ValidatorUpdate{}
-// }
-//
-// func ExportGenesis(ctx sdk.Context, k bank.Keeper) GenesisState {
-// 	// var records []Whois
-// 	// iterator := k.GetNamesIterator(ctx)
-// 	// for ; iterator.Valid(); iterator.Next() {
-// 	// 	name := string(iterator.Key())
-// 	// 	var whois Whois
-// 	// 	whois = k.GetWhois(ctx, name)
-// 	// 	records = append(records, whois)
-// 	// }
-// 	return GenesisState{
-// 		IssuerRecords: []types.Issuers{},
-// 	}
-// }

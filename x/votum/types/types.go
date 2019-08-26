@@ -56,3 +56,13 @@ func (tp TextProposal) String() string {
   Description: %s
 `, tp.Title, tp.Description)
 }
+
+// ContentFromProposalType returns a Content object based on the proposal type.
+func ContentFromProposalType(title, desc, ty string) Content {
+	switch ty {
+	case ProposalTypeText:
+		return NewTextProposal(title, desc)
+	default:
+		return nil
+	}
+}

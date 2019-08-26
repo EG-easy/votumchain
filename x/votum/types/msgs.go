@@ -71,8 +71,12 @@ func (msg MsgIssueToken) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }
 
+type Content interface {
+	gov.Content
+}
+
 type (
-	Content    = gov.Content
+	// Content    = gov.Content
 	VoteOption = gov.VoteOption
 )
 
