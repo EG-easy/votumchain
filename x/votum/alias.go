@@ -73,6 +73,14 @@ var (
 	VotesKeyPrefix              = gov.VotesKeyPrefix
 	ActiveProposalQueuePrefix   = gov.ActiveProposalQueuePrefix
 	InactiveProposalQueuePrefix = gov.InactiveProposalQueuePrefix
+
+	OptionYes        = gov.OptionYes
+	OptionAbstain    = gov.OptionAbstain
+	OptionNo         = gov.OptionNo
+	OptionNoWithVeto = gov.OptionNoWithVeto
+	OptionEmpty      = gov.OptionEmpty
+
+	NewTallyResultFromMap = gov.NewTallyResultFromMap
 )
 
 type (
