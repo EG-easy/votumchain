@@ -70,7 +70,7 @@ $ docker exec -it votum sh
 
 ## 4 validators local private net
 
-```
+```:bash
 # Work from the votumchain Repo
 $ cd $GOPATH/src/github.com/EG-easy/votumchain
 
@@ -78,7 +78,7 @@ $ cd $GOPATH/src/github.com/EG-easy/votumchain
 $ make build-linux
 
 # Build votumchain/votumdnode image
-$ make build-docker-votumdnode
+$ make build-docker
 ```
 
 ### Run Your Testnet
