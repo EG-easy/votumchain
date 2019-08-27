@@ -106,7 +106,7 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 Proposal title, description, type and deposit can be given directly or through a proposal JSON file.
 
 Example:
-$ %s tx gov submit-proposal --proposal="path/to/proposal.json" --from mykey
+$ %s tx votum submit-proposal --proposal="path/to/proposal.json" --from mykey
 
 Where proposal.json contains:
 
@@ -119,7 +119,7 @@ Where proposal.json contains:
 
 Which is equivalent to:
 
-$ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome proposal" --type="Text" --deposit="10test" --from mykey
+$ %s tx votum submit-proposal --title="Test Proposal" --description="My awesome proposal" --type="Text" --deposit="10test" --from mykey
 `,
 				version.ClientName, version.ClientName,
 			),
@@ -166,10 +166,10 @@ func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
 		Short: "Deposit tokens for an active proposal",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit a deposit for an active proposal. You can
-find the proposal-id by running "%s query gov proposals".
+find the proposal-id by running "%s query votum proposals".
 
 Example:
-$ %s tx gov deposit 1 10stake --from mykey
+$ %s tx votum deposit 1 10stake --from mykey
 `,
 				version.ClientName, version.ClientName,
 			),
@@ -212,11 +212,11 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 		Short: "Vote for an active proposal, options: yes/no/no_with_veto/abstain",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit a vote for an active proposal. You can
-find the proposal-id by running "%s query gov proposals".
+find the proposal-id by running "%s query votum proposals".
 
 
 Example:
-$ %s tx gov vote 1 yes --from mykey
+$ %s tx votum vote 1 yes --from mykey
 `,
 				version.ClientName, version.ClientName,
 			),
