@@ -4,17 +4,55 @@
 
 [![version](https://img.shields.io/github/v/tag/EG-easy/votumchain)](https://github.com/EG-easy/votumchain/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/EG-easy/votumchain)](https://goreportcard.com/report/github.com/EG-easy/votumchain)
+[![GolangCI](https://golangci.com/badges/github.com/EG-easy/votumchain.svg)](https://golangci.com/r/github.com/EG-easy/votumchain)
 
-# Get Started
+VotumChain is a blockchain application using cosmos-sdk that anyone can use when making important decisions and when the results need to be published publicly.
+
+**WARNING**: VotumChain is under VERY ACTIVE DEVELOPMENT and should be treated as pre-alpha software. This means it is not meant to be run in production, its APIs are subject to change without warning and should not be relied upon, and it should not be used to hold any value.
+
+
+# What is it
+
+- Cost reduction when making decisions by the majority, such as voting in elections and general meetings.
+- Prevent falsification of voting results.
+- It is possible to collate voting results.
+- Present the ideal way of community governance decision-making.
+- It is finally good that 1741 municipalities nationwide have validators.
+
+# Implementation
+## Completed
+- basic blockchain functions
+- issue my token
+- vote using staking tokens
+
+## Current Work
+- vote using my tokens
+- allow users to decide election params 
+
+## Next Steps
+- add new type of voting params 
+- CI/CD setting
+- release testnet
+- integate with blockchain explore
+
+# Quick Start
+Go 1.12.1+ is required for the Cosmos SDK.
+
+## Install votumcli and votumd
 
 ```
-$ git clone https://github.com/EG-easy/votumchain.git
-cd votumchain
-export GO111MODULE=on
-make install
+$ mkdir -p $GOPATH/src/github.com/EG-easy
+$ cd $GOPATH/src/github.com/EG-easy
+$ go clone github.com/EG-easy/votumchain.git
+$ cd votumchain && git checkout master
+$ export GO111MODULE=on
+$ make install
 ```
 
-**Initialize configuration files and genesis file**
+Try `votumcli version` and `votumd version` to verify everything is OK!
+
+## **Initialize configuration files and genesis file**
+
 ```
 $ votumd init eguegu --chain-id testchain
 ```
@@ -30,7 +68,7 @@ $ votumcli keys add jack
 **Add account with coins to the genesis file**
 
 ```
-$ votumd add-genesis-account $(votumcli keys show jack -a) 1000votum,100000000stake
+$ votumd add-genesis-account $(votumcli keys show jack -a) 100000000votum,100000000stake
 ```
 
 
@@ -49,12 +87,52 @@ $ votumd collect-gentxs
 $ votumd validate-genesis
 ```
 
+Now let's start!  
+```
+$ votumd start
+```
 
 ## Voting
 
 ### send Proposal 
+Firstly, you need to broadcast a proposal to the network.
+You can modify the title, description, deposit of proposal as you like in `proposal/proposal.json`.
+
 ```
-$ votumcli tx gov submit-proposal --proposal="proposal/proposal.json" --from jack
+$ votumcli tx votum submit-proposal --proposal="proposal/proposal.json" --from jack
+```
+
+### deposit 
+You need to deposit votum token to start voting period.
+The default time of voting period is only 120 seconds.
+You can change the parameter in `votum/genesis.go`.
+
+```
+$ votumcli tx votum deposit 1 1000000votum --from jack 
+```
+
+### vote 
+Those who can already stake token can vote the proposal as its stake amount.
+
+```
+$ votumcli tx votum vote 1 yes --from jack
+```
+
+### Check Result
+Check proposal status and final result with this command.
+
+```
+$ votumcli query votum proposal 1
+```
+
+Check deposit status about the certain address.
+```
+$ votumcli query votum deposit $(votumcli keys show -a jack)
+```
+
+Check vote status of all votes.
+```
+$ votumcli query votum votes 1
 ```
 
 ## Use docker
@@ -89,7 +167,7 @@ $ make build-docker
 To start a 4 node testnet run:
 
 ```
-make localnet-start
+$ make localnet-start
 ```
 
 This command creates a 4-node network using the votumdnode image.
@@ -105,7 +183,7 @@ The ports for each node are found in this table:
 To update the binary, just rebuild it and restart the nodes:
 
 ```
-make build-linux localnet-start
+$ make build-linux localnet-start
 ```
 
 
@@ -115,7 +193,7 @@ To interact with `votumcli` and start querying state or creating txs, you use th
 `votumcli` directory of any given node as your `home`, for example:
 
 ```shell
-votumcli keys list --home ./build/node0/votumcli
+$ votumcli keys list --home ./build/node0/votumcli
 ```
 
 
