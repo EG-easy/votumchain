@@ -41,6 +41,10 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		passes, burnDeposits, tallyResults := tally(ctx, keeper, proposal)
 
+		fmt.Printf("passes:%v", passes)
+		fmt.Printf("burnDeposits:%v", burnDeposits)
+		fmt.Printf("tallyResults:%v", tallyResults)
+
 		if burnDeposits {
 			keeper.DeleteDeposits(ctx, proposal.ProposalID)
 		} else {

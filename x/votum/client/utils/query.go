@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 
-	"github.com/EG-easy/votumchain/x/votum"
 	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,7 +70,7 @@ func QueryDepositsByTxQuery(cliCtx context.CLIContext, params types.QueryProposa
 		return nil, err
 	}
 
-	var deposits []votum.Deposit
+	var deposits []gov.Deposit
 
 	for _, info := range searchResult.Txs {
 		for _, msg := range info.Tx.GetMsgs() {

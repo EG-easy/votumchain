@@ -172,7 +172,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	votumRouter := gov.NewRouter()
 	votumRouter.AddRoute(votum.RouterKey, gov.ProposalHandler)
 	app.votumKeeper = votum.NewKeeper(app.cdc, keys[votum.StoreKey], app.paramsKeeper, votumSubspace,
-		app.supplyKeeper, votum.DefaultCodespace, votumRouter)
+		app.supplyKeeper, &stakingKeeper, votum.DefaultCodespace, votumRouter)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks

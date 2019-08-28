@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/EG-easy/votumchain/x/votum/client/utils"
 	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -15,7 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	gcutils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
+	// gcutils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -70,7 +71,7 @@ $ %s query gov proposal 1
 			}
 
 			// Query the proposal
-			res, err := gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			res, err := utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
@@ -127,7 +128,7 @@ $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 			}
 
 			if len(strProposalStatus) != 0 {
-				proposalStatus, err := gov.ProposalStatusFromString(gcutils.NormalizeProposalStatus(strProposalStatus))
+				proposalStatus, err := gov.ProposalStatusFromString(utils.NormalizeProposalStatus(strProposalStatus))
 				if err != nil {
 					return err
 				}
@@ -194,7 +195,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			// check to see if the proposal is in the store
-			_, err = gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			_, err = utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -221,7 +222,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			if vote.Empty() {
-				res, err = gcutils.QueryVoteByTxQuery(cliCtx, params)
+				res, err = utils.QueryVoteByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
@@ -266,7 +267,7 @@ $ %s query gov votes 1
 			}
 
 			// check to see if the proposal is in the store
-			res, err := gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			res, err := utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -276,7 +277,7 @@ $ %s query gov votes 1
 
 			propStatus := proposal.Status
 			if !(propStatus == gov.StatusVotingPeriod || propStatus == gov.StatusDepositPeriod) {
-				res, err = gcutils.QueryVotesByTxQuery(cliCtx, params)
+				res, err = utils.QueryVotesByTxQuery(cliCtx, params)
 			} else {
 				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/votes", queryRoute), bz)
 			}
@@ -318,7 +319,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			// check to see if the proposal is in the store
-			_, err = gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			_, err = utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("Failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -343,7 +344,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			cdc.MustUnmarshalJSON(res, &deposit)
 
 			if deposit.Empty() {
-				res, err = gcutils.QueryDepositByTxQuery(cliCtx, params)
+				res, err = utils.QueryDepositByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
@@ -387,7 +388,7 @@ $ %s query gov deposits 1
 			}
 
 			// check to see if the proposal is in the store
-			res, err := gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			res, err := utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal with id %d: %s", proposalID, err)
 			}
@@ -397,7 +398,7 @@ $ %s query gov deposits 1
 
 			propStatus := proposal.Status
 			if !(propStatus == gov.StatusVotingPeriod || propStatus == gov.StatusDepositPeriod) {
-				res, err = gcutils.QueryDepositsByTxQuery(cliCtx, params)
+				res, err = utils.QueryDepositsByTxQuery(cliCtx, params)
 			} else {
 				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/deposits", queryRoute), bz)
 			}
@@ -439,7 +440,7 @@ $ %s query gov tally 1
 			}
 
 			// check to see if the proposal is in the store
-			_, err = gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			_, err = utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -578,7 +579,7 @@ $ %s query gov proposer 1
 				return fmt.Errorf("proposal-id %s is not a valid uint", args[0])
 			}
 
-			prop, err := gcutils.QueryProposerByTxQuery(cliCtx, proposalID)
+			prop, err := utils.QueryProposerByTxQuery(cliCtx, proposalID)
 			if err != nil {
 				return err
 			}

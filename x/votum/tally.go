@@ -3,23 +3,24 @@ package votum
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 )
 
 // validatorGovInfo used for tallying
 type validatorGovInfo struct {
 	Address             sdk.ValAddress // address of the validator operator
-	BondedTokens        sdk.Int        // Power of a Validator
+	Tokens              sdk.Int        // Power of a Validator
 	DelegatorShares     sdk.Dec        // Total outstanding delegator shares
 	DelegatorDeductions sdk.Dec        // Delegator deductions from validator's delegators voting independently
 	Vote                VoteOption     // Vote of the validator
 }
 
-func newValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, delegatorShares,
+func newValidatorGovInfo(address sdk.ValAddress, tokens sdk.Int, delegatorShares,
 	delegatorDeductions sdk.Dec, vote VoteOption) validatorGovInfo {
 
 	return validatorGovInfo{
 		Address:             address,
-		BondedTokens:        bondedTokens,
+		Tokens:              tokens,
 		DelegatorShares:     delegatorShares,
 		DelegatorDeductions: delegatorDeductions,
 		Vote:                vote,
@@ -38,17 +39,17 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 	currValidators := make(map[string]validatorGovInfo)
 
 	// fetch all the bonded validators, insert them into currValidators
-	// keeper.supplyKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
-	// 	currValidators[validator.GetOperator().String()] = newValidatorGovInfo(
-	// 		validator.GetOperator(),
-	// 		validator.GetBondedTokens(),
-	// 		validator.GetDelegatorShares(),
-	// 		sdk.ZeroDec(),
-	// 		OptionEmpty,
-	// 	)
-	//
-	// 	return false
-	// })
+	keeper.sk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
+		currValidators[validator.GetOperator().String()] = newValidatorGovInfo(
+			validator.GetOperator(),
+			keeper.supplyKeeper.GetCoins(),
+			validator.GetDelegatorShares(),
+			sdk.ZeroDec(),
+			OptionEmpty,
+		)
+
+		return false
+	})
 
 	keeper.IterateVotes(ctx, proposal.ProposalID, func(vote types.Vote) bool {
 		// if validator, just record it in the map
@@ -57,29 +58,26 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 		if val, ok := currValidators[valAddrStr]; ok {
 			val.Vote = vote.Option
 			currValidators[valAddrStr] = val
-		}
+		} else {
 
-		// else {
-		//
-		//
-		// 	// iterate over all delegations from voter, deduct from any delegated-to validators
-		// 	keeper.sk.IterateDelegations(ctx, vote.Voter, func(index int64, delegation exported.DelegationI) (stop bool) {
-		// 		valAddrStr := delegation.GetValidatorAddr().String()
-		//
-		// 		if val, ok := currValidators[valAddrStr]; ok {
-		// 			val.DelegatorDeductions = val.DelegatorDeductions.Add(delegation.GetShares())
-		// 			currValidators[valAddrStr] = val
-		//
-		// 			delegatorShare := delegation.GetShares().Quo(val.DelegatorShares)
-		// 			votingPower := delegatorShare.MulInt(val.BondedTokens)
-		//
-		// 			results[vote.Option] = results[vote.Option].Add(votingPower)
-		// 			totalVotingPower = totalVotingPower.Add(votingPower)
-		// 		}
-		//
-		// 		return false
-		// 	})
-		// }
+			// iterate over all delegations from voter, deduct from any delegated-to validators
+			keeper.sk.IterateDelegations(ctx, vote.Voter, func(index int64, delegation exported.DelegationI) (stop bool) {
+				valAddrStr := delegation.GetValidatorAddr().String()
+
+				if val, ok := currValidators[valAddrStr]; ok {
+					val.DelegatorDeductions = val.DelegatorDeductions.Add(delegation.GetShares())
+					currValidators[valAddrStr] = val
+
+					delegatorShare := delegation.GetShares().Quo(val.DelegatorShares)
+					votingPower := delegatorShare.MulInt(val.Tokens)
+
+					results[vote.Option] = results[vote.Option].Add(votingPower)
+					totalVotingPower = totalVotingPower.Add(votingPower)
+				}
+
+				return false
+			})
+		}
 
 		keeper.deleteVote(ctx, vote.ProposalID, vote.Voter)
 		return false
@@ -93,7 +91,7 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 
 		sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
 		fractionAfterDeductions := sharesAfterDeductions.Quo(val.DelegatorShares)
-		votingPower := fractionAfterDeductions.MulInt(val.BondedTokens)
+		votingPower := fractionAfterDeductions.MulInt(val.Tokens)
 
 		results[val.Vote] = results[val.Vote].Add(votingPower)
 		totalVotingPower = totalVotingPower.Add(votingPower)
@@ -104,15 +102,15 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
-	// if keeper.sk.TotalBondedTokens(ctx).IsZero() {
-	// 	return false, false, tallyResults
-	// }
+	if keeper.sk.TotalBondedTokens(ctx).IsZero() {
+		return false, false, tallyResults
+	}
 
 	// If there is not enough quorum of votes, the proposal fails
-	// percentVoting := totalVotingPower.Quo(keeper.sk.TotalBondedTokens(ctx).ToDec())
-	// if percentVoting.LT(tallyParams.Quorum) {
-	// 	return false, true, tallyResults
-	// }
+	percentVoting := totalVotingPower.Quo(keeper.sk.TotalBondedTokens(ctx).ToDec())
+	if percentVoting.LT(tallyParams.Quorum) {
+		return false, true, tallyResults
+	}
 
 	// If no one votes (everyone abstains), proposal fails
 	if totalVotingPower.Sub(results[OptionAbstain]).Equal(sdk.ZeroDec()) {
