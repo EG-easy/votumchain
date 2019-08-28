@@ -9,18 +9,18 @@ import (
 // validatorGovInfo used for tallying
 type validatorGovInfo struct {
 	Address             sdk.ValAddress // address of the validator operator
-	Tokens              sdk.Int        // Power of a Validator
+	BondedTokens        sdk.Int        // Power of a Validator
 	DelegatorShares     sdk.Dec        // Total outstanding delegator shares
 	DelegatorDeductions sdk.Dec        // Delegator deductions from validator's delegators voting independently
 	Vote                VoteOption     // Vote of the validator
 }
 
-func newValidatorGovInfo(address sdk.ValAddress, tokens sdk.Int, delegatorShares,
+func newValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, delegatorShares,
 	delegatorDeductions sdk.Dec, vote VoteOption) validatorGovInfo {
 
 	return validatorGovInfo{
 		Address:             address,
-		Tokens:              tokens,
+		BondedTokens:        bondedTokens,
 		DelegatorShares:     delegatorShares,
 		DelegatorDeductions: delegatorDeductions,
 		Vote:                vote,
@@ -42,7 +42,7 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 	keeper.sk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
 		currValidators[validator.GetOperator().String()] = newValidatorGovInfo(
 			validator.GetOperator(),
-			keeper.supplyKeeper.GetCoins(),
+			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
 			sdk.ZeroDec(),
 			OptionEmpty,
@@ -59,7 +59,6 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 			val.Vote = vote.Option
 			currValidators[valAddrStr] = val
 		} else {
-
 			// iterate over all delegations from voter, deduct from any delegated-to validators
 			keeper.sk.IterateDelegations(ctx, vote.Voter, func(index int64, delegation exported.DelegationI) (stop bool) {
 				valAddrStr := delegation.GetValidatorAddr().String()
@@ -69,7 +68,7 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 					currValidators[valAddrStr] = val
 
 					delegatorShare := delegation.GetShares().Quo(val.DelegatorShares)
-					votingPower := delegatorShare.MulInt(val.Tokens)
+					votingPower := delegatorShare.MulInt(val.BondedTokens)
 
 					results[vote.Option] = results[vote.Option].Add(votingPower)
 					totalVotingPower = totalVotingPower.Add(votingPower)
@@ -91,7 +90,7 @@ func tally(ctx sdk.Context, keeper Keeper, proposal Proposal) (passes bool, burn
 
 		sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
 		fractionAfterDeductions := sharesAfterDeductions.Quo(val.DelegatorShares)
-		votingPower := fractionAfterDeductions.MulInt(val.Tokens)
+		votingPower := fractionAfterDeductions.MulInt(val.BondedTokens)
 
 		results[val.Vote] = results[val.Vote].Add(votingPower)
 		totalVotingPower = totalVotingPower.Add(votingPower)

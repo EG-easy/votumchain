@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
@@ -16,11 +15,11 @@ MsgsのメソッドであるValidateBasicでは、Msgsのimput時点でのチェ
 */
 
 //NewHandler はMsgのroutingを行う
-func NewHandler(keeper Keeper, bk bank.Keeper, sk SupplyKeeper) sdk.Handler {
+func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
 		case MsgIssueToken:
-			return handleMsgIssueToken(ctx, bk, sk, msg)
+			return handleMsgIssueToken(ctx, keeper.bk, keeper.supplyKeeper, msg)
 
 		case MsgDeposit:
 			return handleMsgDeposit(ctx, keeper, msg)
@@ -39,7 +38,7 @@ func NewHandler(keeper Keeper, bk bank.Keeper, sk SupplyKeeper) sdk.Handler {
 }
 
 //IssueTokenのMsgを扱うためのHandler
-func handleMsgIssueToken(ctx sdk.Context, bk bank.Keeper, sk SupplyKeeper, msg MsgIssueToken) sdk.Result {
+func handleMsgIssueToken(ctx sdk.Context, bk BankKeeper, sk SupplyKeeper, msg MsgIssueToken) sdk.Result {
 
 	newCoin := sdk.NewCoin(msg.Coins[0].Denom, msg.Coins[0].Amount)
 	issuer := msg.Owner

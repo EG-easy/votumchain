@@ -15,6 +15,7 @@ import (
 
 // Votum Keeper
 type Keeper struct {
+	bk BankKeeper
 	// The reference to the Param Keeper to get and set Global Params
 	paramsKeeper params.Keeper
 
@@ -23,6 +24,9 @@ type Keeper struct {
 
 	// The SupplyKeeper to reduce the supply of the network
 	supplyKeeper SupplyKeeper
+
+	// The reference to the DelegationSet and ValidatorSet to get information about validators and delegators
+	sk StakingKeeper
 
 	// The (unexposed) keys used to access the stores from the Context.
 	storeKey sdk.StoreKey
@@ -44,7 +48,7 @@ type Keeper struct {
 // - and tallying the result of the vote.
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramsKeeper params.Keeper, paramSpace params.Subspace,
-	supplyKeeper SupplyKeeper, codespace sdk.CodespaceType, rtr Router,
+	supplyKeeper SupplyKeeper, sk StakingKeeper, bk BankKeeper, codespace sdk.CodespaceType, rtr Router,
 ) Keeper {
 
 	// ensure governance module account is set
@@ -62,6 +66,8 @@ func NewKeeper(
 		paramsKeeper: paramsKeeper,
 		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
 		supplyKeeper: supplyKeeper,
+		sk:           sk,
+		bk:           bk,
 		cdc:          cdc,
 		codespace:    codespace,
 		router:       rtr,

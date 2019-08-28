@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
 // type check to ensure the interface is properly implemented
@@ -93,12 +92,12 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper Keeper
-	bk     bank.Keeper
+	bk     BankKeeper
 	sk     SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, bk bank.Keeper, sk SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, bk BankKeeper, sk SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -124,7 +123,7 @@ func (AppModule) Route() string {
 
 // NewHandler - module handler
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper, am.bk, am.sk)
+	return NewHandler(am.keeper)
 }
 
 // QuerierRoute - module querier route name
