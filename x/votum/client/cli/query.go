@@ -154,7 +154,7 @@ $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 			}
 
 			if len(matchingProposals) == 0 {
-				return fmt.Errorf("No matching proposals found")
+				return fmt.Errorf("no matching proposals found")
 			}
 
 			return cliCtx.PrintOutput(matchingProposals) // nolint:errcheck
@@ -321,7 +321,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			// check to see if the proposal is in the store
 			_, err = utils.QueryProposalByID(proposalID, cliCtx, queryRoute)
 			if err != nil {
-				return fmt.Errorf("Failed to fetch proposal-id %d: %s", proposalID, err)
+				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
 
 			depositorAddr, err := sdk.AccAddressFromBech32(args[1])
@@ -547,7 +547,7 @@ $ %s query gov param deposit
 				cdc.MustUnmarshalJSON(res, &param)
 				out = param
 			default:
-				return fmt.Errorf("Argument must be one of (voting|tallying|deposit), was %s", args[0])
+				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
 			}
 
 			return cliCtx.PrintOutput(out)
