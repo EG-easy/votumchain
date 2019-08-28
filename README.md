@@ -2,6 +2,9 @@
   <img src="./votum-logo.png" width="300">
 </p>
 
+[![version](https://img.shields.io/github/v/tag/EG-easy/votumchain)](https://github.com/EG-easy/votumchain/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/EG-easy/votumchain)](https://goreportcard.com/report/github.com/EG-easy/votumchain)
+
 # Get Started
 
 ```
@@ -70,7 +73,7 @@ $ docker exec -it votum sh
 
 ## 4 validators local private net
 
-```:bash
+```bash
 # Work from the votumchain Repo
 $ cd $GOPATH/src/github.com/EG-easy/votumchain
 
