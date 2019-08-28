@@ -20,4 +20,3 @@ linters:
     - scopelint
     - prealloc
     - varcheck
-    - ifElseChain
