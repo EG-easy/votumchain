@@ -6,41 +6,32 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/EG-easy/votumchain)](https://goreportcard.com/report/github.com/EG-easy/votumchain)
 [![GolangCI](https://golangci.com/badges/github.com/EG-easy/votumchain.svg)](https://golangci.com/r/github.com/EG-easy/votumchain)
 
-VotumChain is a blockchain application using cosmos-sdk that anyone can use when making important decisions and when the results need to be published publicly.
+VotumChain is a blockchain application using cosmos-sdk that anyone can use when making important decisions and when the results need to be published publicly, presenting the ideal way of community governance decision-making.VotumChain can reduce cost when making decisions by the majority, such as voting in elections and general meetings, and prevent falsification of voting results. It is possible to refer every voting results.
 
 **WARNING**: VotumChain is under VERY ACTIVE DEVELOPMENT and should be treated as pre-alpha software. This means it is not meant to be run in production, its APIs are subject to change without warning and should not be relied upon, and it should not be used to hold any value.
 
-
-# What is it
-
-- Cost reduction when making decisions by the majority, such as voting in elections and general meetings.
-- Prevent falsification of voting results.
-- It is possible to collate voting results.
-- Present the ideal way of community governance decision-making.
-- It is finally good that 1741 municipalities nationwide have validators.
-
 # Implementation
 ## Completed
-- basic blockchain functions
-- issue my token
-- vote using staking tokens
+- [x] basic blockchain functions
+- [x] issue my token
+- [x] vote using staking tokens
 
 ## Current Work
-- vote using my tokens
-- allow users to decide election params 
+- [ ] vote using my tokens
+- [ ] allow users to decide election params 
 
 ## Next Steps
-- add new type of voting params 
-- CI/CD setting
-- release testnet
-- integate with blockchain explore
+- [ ] add new type of voting params 
+- [ ] CI/CD setting
+- [ ] release testnet
+- [ ] integate with blockchain explore
 
 # Quick Start
 Go 1.12.1+ is required for the Cosmos SDK.
 
 ## Install votumcli and votumd
 
-```
+```bash
 $ mkdir -p $GOPATH/src/github.com/EG-easy
 $ cd $GOPATH/src/github.com/EG-easy
 $ go clone github.com/EG-easy/votumchain.git
@@ -53,42 +44,46 @@ Try `votumcli version` and `votumd version` to verify everything is OK!
 
 ## **Initialize configuration files and genesis file**
 
+Just use shell scripts bellow.
 ```
+$ sh scripts/start.sh
+```
+
+Or you can follow the command.
+
+```bash
 $ votumd init eguegu --chain-id testchain
 ```
 
 **Copy the `Address` output here and save it for later use**
-```
+
+```bash
 $ votumcli keys add jack
 ```
 
-**Copy the `Address` output here and save it for later use**
-
-
 **Add account with coins to the genesis file**
 
-```
+```bash
 $ votumd add-genesis-account $(votumcli keys show jack -a) 100000000votum,100000000stake
-```
-
+``` 
 
 **Configure your CLI to eliminate need for chain-id flag**
 
-```
+```bash
 $ votumcli config chain-id testchain
 $ votumcli config output json
 $ votumcli config indent true
 $ votumcli config trust-node true
 ```
 
-```
+```bash
 $ votumd gentx --name jack
 $ votumd collect-gentxs
 $ votumd validate-genesis
 ```
 
-Now let's start!  
-```
+**Now let's start!**
+```bash
 $ votumd start
 ```
 
@@ -98,7 +93,7 @@ $ votumd start
 Firstly, you need to broadcast a proposal to the network.
 You can modify the title, description, deposit of proposal as you like in `proposal/proposal.json`.
 
-```
+```bash
 $ votumcli tx votum submit-proposal --proposal="proposal/proposal.json" --from jack
 ```
 
@@ -107,45 +102,45 @@ You need to deposit votum token to start voting period.
 The default time of voting period is only 120 seconds.
 You can change the parameter in `votum/genesis.go`.
 
-```
+```bash
 $ votumcli tx votum deposit 1 1000000votum --from jack 
 ```
 
 ### vote 
 Those who can already stake token can vote the proposal as its stake amount.
 
-```
+```bash
 $ votumcli tx votum vote 1 yes --from jack
 ```
 
 ### Check Result
 Check proposal status and final result with this command.
 
-```
+```bash
 $ votumcli query votum proposal 1
 ```
 
 Check deposit status about the certain address.
-```
+```bash
 $ votumcli query votum deposit $(votumcli keys show -a jack)
 ```
 
 Check vote status of all votes.
-```
+```bash
 $ votumcli query votum votes 1
 ```
 
 ## Use docker
 
-```
+```bash
 $ docker build -t votum .
 ```
 
-```
+```bash
 $ docker run --rm -it votum sh
 ```
 
-```
+```bash
 $ docker exec -it votum sh
 ```
 
@@ -166,7 +161,7 @@ $ make build-docker
 
 To start a 4 node testnet run:
 
-```
+```bash
 $ make localnet-start
 ```
 
@@ -182,10 +177,9 @@ The ports for each node are found in this table:
 
 To update the binary, just rebuild it and restart the nodes:
 
-```
+```bash
 $ make build-linux localnet-start
 ```
-
 
 ### Keys & Accounts
 
@@ -195,7 +189,6 @@ To interact with `votumcli` and start querying state or creating txs, you use th
 ```shell
 $ votumcli keys list --home ./build/node0/votumcli
 ```
-
 
 ## License
 Licensed under the [Apache v2 License](LICENSE).
