@@ -30,7 +30,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-const appName = "votumApp"
+const (
+	appName          = "votumApp"
+	Bech32MainPrefix = "votum"
+)
 
 var (
 	// default home directories for the application CLI
@@ -56,7 +59,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 
-		votum.AppModule{},
+		votum.NewAppModuleBasic(),
 	)
 	// module account permissions
 	maccPerms = map[string][]string{
@@ -66,6 +69,7 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		votum.ModuleName:          {supply.Burner},
 	}
 )
 
@@ -91,22 +95,6 @@ type votumApp struct {
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
 
-	// // keys to access the substores
-	// keyMain     *sdk.KVStoreKey
-	// keyAccount  *sdk.KVStoreKey
-	// keySupply   *sdk.KVStoreKey
-	// keyStaking  *sdk.KVStoreKey
-	// tkeyStaking *sdk.TransientStoreKey
-	// keySlashing *sdk.KVStoreKey
-	// keyMint     *sdk.KVStoreKey
-	// keyDistr    *sdk.KVStoreKey
-	// tkeyDistr   *sdk.TransientStoreKey
-	// keyGov      *sdk.KVStoreKey
-	// keyParams   *sdk.KVStoreKey
-	// tkeyParams  *sdk.TransientStoreKey
-	//
-	// keyVotum *sdk.KVStoreKey
-
 	// keepers
 	accountKeeper  auth.AccountKeeper
 	bankKeeper     bank.Keeper
@@ -119,7 +107,7 @@ type votumApp struct {
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
 
-	// votumKeeper votum.Keeper
+	votumKeeper votum.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -138,7 +126,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey,
+		gov.StoreKey, params.StoreKey, votum.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -151,7 +139,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -160,6 +148,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	votumSubspace := app.paramsKeeper.Subspace(votum.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
@@ -173,7 +162,6 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper,
 		slashingSubspace, slashing.DefaultCodespace)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
-	// app.votumKeeper = votum.NewKeeper(app.cdc, app.bankKeeper)
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
@@ -182,6 +170,12 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter)
+
+	// add votum keeper
+	votumRouter := gov.NewRouter()
+	votumRouter.AddRoute(votum.RouterKey, gov.ProposalHandler)
+	app.votumKeeper = votum.NewKeeper(app.cdc, keys[votum.StoreKey], app.paramsKeeper, votumSubspace,
+		app.supplyKeeper, &stakingKeeper, app.bankKeeper, votum.DefaultCodespace, votumRouter)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -201,7 +195,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 
-		votum.NewAppModule(app.bankKeeper, app.supplyKeeper, app.accountKeeper),
+		votum.NewAppModule(app.votumKeeper, app.bankKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -209,7 +203,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
 
-	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, votum.ModuleName)
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
@@ -248,6 +242,12 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		}
 	}
 	return app
+}
+
+func SetBech32AddressPrefixes(config *sdk.Config) {
+	config.SetBech32PrefixForAccount(Bech32MainPrefix, Bech32MainPrefix+sdk.PrefixPublic)
+	config.SetBech32PrefixForValidator(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
+	config.SetBech32PrefixForConsensusNode(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
 }
 
 // application updates every begin block

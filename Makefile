@@ -35,8 +35,8 @@ BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 all: lint install
 
 install: go.sum
-		go install -mod=readonly $(BUILD_FLAGS) ./cmd/votumd
-		go install -mod=readonly $(BUILD_FLAGS) ./cmd/votumcli
+		go install $(BUILD_FLAGS) ./cmd/votumd
+		go install $(BUILD_FLAGS) ./cmd/votumcli
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
