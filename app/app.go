@@ -30,7 +30,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-const appName = "votumApp"
+const (
+	appName          = "votumApp"
+	Bech32MainPrefix = "votum"
+)
 
 var (
 	// default home directories for the application CLI
@@ -172,7 +175,7 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	votumRouter := gov.NewRouter()
 	votumRouter.AddRoute(votum.RouterKey, gov.ProposalHandler)
 	app.votumKeeper = votum.NewKeeper(app.cdc, keys[votum.StoreKey], app.paramsKeeper, votumSubspace,
-		app.supplyKeeper, &stakingKeeper, votum.DefaultCodespace, votumRouter)
+		app.supplyKeeper, &stakingKeeper, app.bankKeeper, votum.DefaultCodespace, votumRouter)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -239,6 +242,12 @@ func NewVotumApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		}
 	}
 	return app
+}
+
+func SetBech32AddressPrefixes(config *sdk.Config) {
+	config.SetBech32PrefixForAccount(Bech32MainPrefix, Bech32MainPrefix+sdk.PrefixPublic)
+	config.SetBech32PrefixForValidator(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
+	config.SetBech32PrefixForConsensusNode(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
 }
 
 // application updates every begin block
