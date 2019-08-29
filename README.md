@@ -29,6 +29,8 @@ VotumChain is a blockchain application using cosmos-sdk that anyone can use when
 # Quick Start
 Go 1.12.1+ is required for the Cosmos SDK.
 
+Firstly, watch [Demo](https://drive.google.com/file/d/157b35fApxevHui0C2ABp00ugYwjwofba/view?usp=sharing)!
+
 ## Install votumcli and votumd
 
 ```bash
