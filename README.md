@@ -36,7 +36,7 @@ Firstly, watch [Demo](https://drive.google.com/file/d/157b35fApxevHui0C2ABp00ugY
 ```bash
 $ mkdir -p $GOPATH/src/github.com/EG-easy
 $ cd $GOPATH/src/github.com/EG-easy
-$ go clone github.com/EG-easy/votumchain.git
+$ git clone github.com/EG-easy/votumchain.git
 $ cd votumchain && git checkout master
 $ export GO111MODULE=on
 $ make install
