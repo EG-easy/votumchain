@@ -1,160 +1,147 @@
 package votum
 
-// DONTCOVER
-
 import (
 	"encoding/json"
 
-	"github.com/EG-easy/votumchain/x/votum/client"
-	"github.com/EG-easy/votumchain/x/votum/client/cli"
-	"github.com/EG-easy/votumchain/x/votum/client/rest"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/EG-easy/votumchain/x/votum/client/cli"
+	"github.com/EG-easy/votumchain/x/votum/client/rest"
+	"github.com/EG-easy/votumchain/x/votum/keeper"
+	"github.com/EG-easy/votumchain/x/votum/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
-// type check to ensure the interface is properly implemented
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic - app module basics object
-type AppModuleBasic struct {
-	proposalHandlers []client.ProposalHandler // proposal handlers which live in governance cli and rest
-}
+// AppModuleBasic defines the basic application module used by the votum module.
+type AppModuleBasic struct{}
 
-// NewAppModuleBasic creates a new AppModuleBasic object
-func NewAppModuleBasic(proposalHandlers ...client.ProposalHandler) AppModuleBasic {
-	return AppModuleBasic{
-		proposalHandlers: proposalHandlers,
-	}
-}
-
-// Name - module name
+// Name returns the votum module's name.
 func (AppModuleBasic) Name() string {
-	return ModuleName
+	return types.ModuleName
 }
 
-// RegisterCodec -register module codec
+// RegisterCodec registers the votum module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
 }
 
-// DefaultGenesis - default genesis state
+// DefaultGenesis returns default genesis state as raw bytes for the votum
+// module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
-// ValidateGenesis - module validate genesis
+// ValidateGenesis performs genesis state validation for the votum module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	var data types.GenesisState
+	err := types.ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(data)
+	return types.ValidateGenesis(data)
 }
 
-// RegisterRESTRoutes - register rest routes
-func (a AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	var proposalRESTHandlers []rest.ProposalRESTHandler
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalRESTHandlers = append(proposalRESTHandlers, proposalHandler.RESTHandler(ctx))
-	}
-
-	rest.RegisterRoutes(ctx, rtr, proposalRESTHandlers)
+// RegisterRESTRoutes registers the REST routes for the votum module.
+func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd gets the root tx command of this module
-func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-
-	var proposalCLIHandlers []*cobra.Command
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler(cdc))
-	}
-
-	return cli.GetTxCmd(StoreKey, cdc, proposalCLIHandlers)
+// GetTxCmd returns the root tx command for the votum module.
+func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetTxCmd(cdc)
 }
 
-// GetQueryCmd gets the root query command of this module
+// GetQueryCmd returns no root query command for the votum module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
 
-// app module
+//____________________________________________________________________________
+
+// AppModule implements an application module for the votum module.
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
-	bk     BankKeeper
-	sk     SupplyKeeper
+
+	keeper     keeper.Keeper
+	coinKeeper bank.Keeper
+	// TODO: Add keepers that your application depends on
+
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, bk BankKeeper, sk SupplyKeeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
-		bk:             bk,
-		sk:             sk,
+		keeper:         k,
+		coinKeeper:     bankKeeper,
+		// TODO: Add keepers that your application depends on
 	}
 }
 
-// Name - module name
+// Name returns the votum module's name.
 func (AppModule) Name() string {
-	return ModuleName
+	return types.ModuleName
 }
 
-// RegisterInvariants registers module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	RegisterInvariants(ir, am.keeper)
-}
+// RegisterInvariants registers the votum module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route - module message route name
+// Route returns the message routing key for the votum module.
 func (AppModule) Route() string {
-	return RouterKey
+	return types.RouterKey
 }
 
-// NewHandler - module handler
+// NewHandler returns an sdk.Handler for the votum module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// QuerierRoute - module querier route name
+// QuerierRoute returns the votum module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return QuerierRoute
+	return types.QuerierRoute
 }
 
-// NewQuerierHandler - module querier
+// NewQuerierHandler returns the votum module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+	return keeper.NewQuerier(am.keeper)
 }
 
-// InitGenesis - module init-genesis
+// InitGenesis performs genesis initialization for the votum module. It returns
+// no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	var genesisState types.GenesisState
+	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis - module export genesis
+// ExportGenesis returns the exported genesis state as raw bytes for the votum
+// module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+	return types.ModuleCdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock - module begin-block
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+// BeginBlock returns the begin blocker for the votum module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	BeginBlocker(ctx, req, am.keeper)
+}
 
-// EndBlock - module end-block
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
+// EndBlock returns the end blocker for the votum module. It returns no validator
+// updates.
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

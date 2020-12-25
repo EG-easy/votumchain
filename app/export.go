@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
-func (app *votumApp) ExportAppStateAndValidators(
+func (app *NewApp) ExportAppStateAndValidators(
 	forZeroHeight bool, jailWhiteList []string,
 ) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 
@@ -38,7 +38,7 @@ func (app *votumApp) ExportAppStateAndValidators(
 // prepare for fresh start at zero height
 // NOTE zero height genesis is a temporary feature which will be deprecated
 //      in favour of export at a block height
-func (app *votumApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
+func (app *NewApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
 	applyWhiteList := false
 
 	//Check if there is a whitelist
@@ -56,28 +56,7 @@ func (app *votumApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []s
 		whiteListMap[addr] = true
 	}
 
-	/* Just to be safe, assert the invariants on current state. */
-	app.crisisKeeper.AssertInvariants(ctx)
-
-	/* Handle fee distribution state. */
-
-	// withdraw all validator commission
-	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
-		_, _ = app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
-		return false
-	})
-
-	// withdraw all delegator rewards
-	dels := app.stakingKeeper.GetAllDelegations(ctx)
-	for _, delegation := range dels {
-		_, _ = app.distrKeeper.WithdrawDelegationRewards(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	}
-
-	// clear validator slash events
-	app.distrKeeper.DeleteAllValidatorSlashEvents(ctx)
-
-	// clear validator historical rewards
-	app.distrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
+	// this line is used by starport scaffolding # 1
 
 	// set context height to zero
 	height := ctx.BlockHeight()
@@ -85,22 +64,11 @@ func (app *votumApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []s
 
 	// reinitialize all validators
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
-
-		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
-		scraps := app.distrKeeper.GetValidatorOutstandingRewards(ctx, val.GetOperator())
-		feePool := app.distrKeeper.GetFeePool(ctx)
-		feePool.CommunityPool = feePool.CommunityPool.Add(scraps)
-		app.distrKeeper.SetFeePool(ctx, feePool)
-
-		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
+		// this line is used by starport scaffolding # 2
 		return false
 	})
 
-	// reinitialize all delegations
-	for _, del := range dels {
-		app.distrKeeper.Hooks().BeforeDelegationCreated(ctx, del.DelegatorAddress, del.ValidatorAddress)
-		app.distrKeeper.Hooks().AfterDelegationModified(ctx, del.DelegatorAddress, del.ValidatorAddress)
-	}
+	// this line is used by starport scaffolding # 3
 
 	// reset context height
 	ctx = ctx.WithBlockHeight(height)
@@ -150,16 +118,4 @@ func (app *votumApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []s
 	iter.Close()
 
 	_ = app.stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-
-	/* Handle slashing state. */
-
-	// reset start height on signing infos
-	app.slashingKeeper.IterateValidatorSigningInfos(
-		ctx,
-		func(addr sdk.ConsAddress, info slashing.ValidatorSigningInfo) (stop bool) {
-			info.StartHeight = 0
-			app.slashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
-			return false
-		},
-	)
 }

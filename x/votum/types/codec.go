@@ -4,19 +4,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-var ModuleCdc = codec.New()
-
-func init() {
-	RegisterCodec(ModuleCdc)
+// RegisterCodec registers concrete types on codec
+func RegisterCodec(cdc *codec.Codec) {
+  // this line is used by starport scaffolding # 1
 }
 
-//RegisterCodec codecでencode/decodeするためにtypesを登録する
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterInterface((*Content)(nil), nil)
+// ModuleCdc defines the module codec
+var ModuleCdc *codec.Codec
 
-	cdc.RegisterConcrete(MsgIssueToken{}, "votum/issue", nil)
-	cdc.RegisterConcrete(MsgSubmitProposal{}, "votum/MsgSubmitProposal", nil)
-	cdc.RegisterConcrete(MsgDeposit{}, "votum/MsgDeposit", nil)
-	cdc.RegisterConcrete(MsgVote{}, "votum/MsgVote", nil)
-	cdc.RegisterConcrete(TextProposal{}, "votum/TextProposal", nil)
+func init() {
+	ModuleCdc = codec.New()
+	RegisterCodec(ModuleCdc)
+	codec.RegisterCrypto(ModuleCdc)
+	ModuleCdc.Seal()
 }
