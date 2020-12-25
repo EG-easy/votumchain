@@ -1,15 +1,9 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	DefaultCodespace sdk.CodespaceType = ModuleName
-
-	CodeNameDoesNotExist sdk.CodeType = 101
+var (
+	ErrInvalid = sdkerrors.Register(ModuleName, 1, "custom error message")
 )
-
-func ErrNameDoesNotExist(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeNameDoesNotExist, "Name does not exist")
-}
