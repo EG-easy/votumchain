@@ -1,23 +1,42 @@
 package keeper
 
-/*
-// TODO: Define if your module needs Parameters, if not this can be deleted
-
 import (
-	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/EG-easy/votumchain/x/votum/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GetParams returns the total set of votum parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramspace.GetParamSet(ctx, &params)
-	return params
+// GetDepositParams returns the current DepositParams from the global param store
+func (keeper Keeper) GetDepositParams(ctx sdk.Context) types.DepositParams {
+	var depositParams types.DepositParams
+	keeper.paramSpace.Get(ctx, types.ParamStoreKeyDepositParams, &depositParams)
+	return depositParams
 }
 
-// SetParams sets the votum parameters to the param space.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramspace.SetParamSet(ctx, &params)
+// GetVotingParams returns the current VotingParams from the global param store
+func (keeper Keeper) GetVotingParams(ctx sdk.Context) types.VotingParams {
+	var votingParams types.VotingParams
+	keeper.paramSpace.Get(ctx, types.ParamStoreKeyVotingParams, &votingParams)
+	return votingParams
 }
-*/
+
+// GetTallyParams returns the current TallyParam from the global param store
+func (keeper Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
+	var tallyParams types.TallyParams
+	keeper.paramSpace.Get(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
+	return tallyParams
+}
+
+// SetDepositParams sets DepositParams to the global param store
+func (keeper Keeper) SetDepositParams(ctx sdk.Context, depositParams types.DepositParams) {
+	keeper.paramSpace.Set(ctx, types.ParamStoreKeyDepositParams, &depositParams)
+}
+
+// SetVotingParams sets VotingParams to the global param store
+func (keeper Keeper) SetVotingParams(ctx sdk.Context, votingParams types.VotingParams) {
+	keeper.paramSpace.Set(ctx, types.ParamStoreKeyVotingParams, &votingParams)
+}
+
+// SetTallyParams sets TallyParams to the global param store
+func (keeper Keeper) SetTallyParams(ctx sdk.Context, tallyParams types.TallyParams) {
+	keeper.paramSpace.Set(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
+}

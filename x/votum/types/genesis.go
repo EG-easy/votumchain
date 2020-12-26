@@ -1,26 +1,73 @@
 package types
 
-// GenesisState - all votum state that must be provided at genesis
+import (
+	"bytes"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// GenesisState - all staking state that must be provided at genesis
 type GenesisState struct {
-	// TODO: Fill out what is needed by the module for genesis
+	StartingProposalID uint64        `json:"starting_proposal_id" yaml:"starting_proposal_id"`
+	Deposits           Deposits      `json:"deposits" yaml:"deposits"`
+	Votes              Votes         `json:"votes" yaml:"votes"`
+	Proposals          Proposals     `json:"proposals" yaml:"proposals"`
+	DepositParams      DepositParams `json:"deposit_params" yaml:"deposit_params"`
+	VotingParams       VotingParams  `json:"voting_params" yaml:"voting_params"`
+	TallyParams        TallyParams   `json:"tally_params" yaml:"tally_params"`
 }
 
-// NewGenesisState creates a new GenesisState object
-func NewGenesisState( /* TODO: Fill out with what is needed for genesis state */ ) GenesisState {
+// NewGenesisState creates a new genesis state for the governance module
+func NewGenesisState(startingProposalID uint64, dp DepositParams, vp VotingParams, tp TallyParams) GenesisState {
 	return GenesisState{
-		// TODO: Fill out according to your genesis state
+		StartingProposalID: startingProposalID,
+		DepositParams:      dp,
+		VotingParams:       vp,
+		TallyParams:        tp,
 	}
 }
 
-// DefaultGenesisState - default GenesisState used by Cosmos Hub
+// DefaultGenesisState defines the default governance genesis state
 func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		// TODO: Fill out according to your genesis state, these values will be initialized but empty
-	}
+	return NewGenesisState(
+		DefaultStartingProposalID,
+		DefaultDepositParams(),
+		DefaultVotingParams(),
+		DefaultTallyParams(),
+	)
 }
 
-// ValidateGenesis validates the votum genesis parameters
+// Equal checks whether two gov GenesisState structs are equivalent
+func (data GenesisState) Equal(data2 GenesisState) bool {
+	b1 := ModuleCdc.MustMarshalBinaryBare(data)
+	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
+	return bytes.Equal(b1, b2)
+}
+
+// IsEmpty returns true if a GenesisState is empty
+func (data GenesisState) IsEmpty() bool {
+	return data.Equal(GenesisState{})
+}
+
+// ValidateGenesis checks if parameters are within valid ranges
 func ValidateGenesis(data GenesisState) error {
-	// TODO: Create a sanity check to make sure the state conforms to the modules needs
+	threshold := data.TallyParams.Threshold
+	if threshold.IsNegative() || threshold.GT(sdk.OneDec()) {
+		return fmt.Errorf("governance vote threshold should be positive and less or equal to one, is %s",
+			threshold.String())
+	}
+
+	veto := data.TallyParams.Veto
+	if veto.IsNegative() || veto.GT(sdk.OneDec()) {
+		return fmt.Errorf("governance vote veto threshold should be positive and less or equal to one, is %s",
+			veto.String())
+	}
+
+	if !data.DepositParams.MinDeposit.IsValid() {
+		return fmt.Errorf("governance deposit amount must be a valid sdk.Coins amount, is %s",
+			data.DepositParams.MinDeposit.String())
+	}
+
 	return nil
 }

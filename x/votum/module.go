@@ -78,7 +78,7 @@ type AppModule struct {
 	keeper     keeper.Keeper
 	coinKeeper bank.Keeper
 	// TODO: Add keepers that your application depends on
-
+	supplyKeeper types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -119,12 +119,12 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return keeper.NewQuerier(am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the votum module. It returns
+// InitGenesis performs genesis initialization for the gov module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState GenesisState
 	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -137,7 +137,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 
 // BeginBlock returns the begin blocker for the votum module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
 }
 
 // EndBlock returns the end blocker for the votum module. It returns no validator

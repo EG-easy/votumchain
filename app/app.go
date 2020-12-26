@@ -123,6 +123,7 @@ func NewInitApp(
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
 	// this line is used by starport scaffolding # 5.1
+	app.subspaces[votum.ModuleName] = app.paramsKeeper.Subspace(votum.DefaultParamspace)
 
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -160,10 +161,13 @@ func NewInitApp(
 		),
 	)
 
+	// register the proposal types
+	votumRouter := votum.NewRouter()
+	votumRouter.AddRoute(votum.RouterKey, votum.ProposalHandler)
+
 	app.votumKeeper = votumkeeper.NewKeeper(
-		app.bankKeeper,
-		app.cdc,
-		keys[votumtypes.StoreKey],
+		app.cdc, keys[votumtypes.StoreKey], app.subspaces[votum.ModuleName],
+		app.supplyKeeper, &stakingKeeper, votumRouter,
 	)
 
 	// this line is used by starport scaffolding # 4
